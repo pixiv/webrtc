@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "api/scoped_refptr.h"
+#include "api/video/i420_buffer.h"
 #include "api/video/video_frame.h"
 #include "api/video/video_frame_buffer.h"
 
@@ -90,6 +91,15 @@ int ConvertFromI420(const VideoFrame& src_frame,
                     VideoType dst_video_type,
                     int dst_sample_size,
                     uint8_t* dst_frame);
+
+int ConvertToI420(VideoType src_video_type,
+                  int src_sample_size,
+                  int src_width,
+                  int src_height,
+                  const uint8_t* src_frame,
+                  rtc::scoped_refptr<I420Buffer> dst_frame,
+                  int crop_x,
+                  int crop_y);
 
 rtc::scoped_refptr<I420BufferInterface> ScaleVideoFrameBuffer(
     const I420BufferInterface& source,

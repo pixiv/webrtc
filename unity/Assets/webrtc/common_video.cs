@@ -1,0 +1,82 @@
+using System;
+using System.Runtime.InteropServices;
+
+namespace Webrtc
+{
+    public static class Libyuv
+    {
+        public enum VideoType
+        {
+            Unknown,
+            I420,
+            IYUV,
+            RGB24,
+            ABGR,
+            ARGB,
+            ARGB4444,
+            RGB565,
+            ARGB1555,
+            YUY2,
+            YV12,
+            UYVY,
+            MJPEG,
+            NV21,
+            NV12,
+            BGRA,
+        }
+
+        [DllImport("webrtc_c")]
+        private static extern int webrtcConvertFromI420(
+            IntPtr srcFrame,
+            VideoType dstVideoType,
+            int dstSampleSize,
+            IntPtr dstFrame
+        );
+
+        [DllImport("webrtc_c")]
+        private static extern int webrtcConvertToI420(
+            VideoType srcVideoType,
+            int srcSampleSize,
+            int srcWidth,
+            int srcHeight,
+            IntPtr srcFrame,
+            IntPtr dstFrame,
+            int cropX,
+            int cropY
+        );
+
+        public static bool ConvertFromI420(
+            ConstVideoFrame srcFrame,
+            VideoType dstVideoType,
+            int dstSampleSize,
+            IntPtr dstFrame)
+        {
+            return webrtcConvertFromI420(
+                srcFrame.Ptr,
+                dstVideoType,
+                dstSampleSize,
+                dstFrame) == 0;
+        }
+
+        public static bool ConvertToI420(
+            VideoType srcVideoType,
+            int srcSampleSize,
+            int srcWidth,
+            int srcHeight,
+            IntPtr srcFrame,
+            I420Buffer dstFrame,
+            int cropX,
+            int cropY)
+        {
+            return webrtcConvertToI420(
+                srcVideoType,
+                srcSampleSize,
+                srcWidth,
+                srcHeight,
+                srcFrame,
+                I420Buffer.webrtcVideoFrameBufferToI420Buffer(dstFrame.Ptr),
+                cropX,
+                cropY) == 0;
+        }
+    }
+}

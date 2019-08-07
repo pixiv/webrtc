@@ -18,6 +18,12 @@ if (is_mac) {
 group("sdk") {
   public_deps = []
   if (!build_with_chromium) {
+    public_deps += [ ":c" ]
+
+    if (rtc_enable_symbol_export) {
+      public_deps += [ ":webrtc_c" ]
+    }
+
     if (is_android) {
       public_deps += [ "android" ]
     }
@@ -25,6 +31,46 @@ group("sdk") {
       public_deps += [ ":framework_objc" ]
     }
   }
+}
+
+rtc_source_set("c") {
+  sources = [
+    "c/api/audio_codecs.cc",
+    "c/api/create_peerconnection_factory.cc",
+    "c/api/data_channel_interface.cc",
+    "c/api/jsep.cc",
+    "c/api/media_stream_interface.cc",
+    "c/api/peer_connection_interface.cc",
+    "c/api/rtc_error.cc",
+    "c/api/rtp_receiver_interface.cc",
+    "c/api/rtp_sender_interface.cc",
+    "c/api/rtp_transceiver_interface.cc",
+    "c/api/video/i420_buffer.cc",
+    "c/api/video/video_frame.cc",
+    "c/api/video/video_frame_buffer.cc",
+    "c/api/video/video_sink_interface.cc",
+    "c/api/video_codecs.cc",
+    "c/common_video.cc",
+    "c/media.cc",
+    "c/rtc_base.cc",
+    "c/string.cc"
+  ]
+  deps = [
+    "../api",
+    "../api:create_peerconnection_factory",
+    "../api/audio_codecs:builtin_audio_decoder_factory",
+    "../api/audio_codecs:builtin_audio_encoder_factory",
+    "../api/video_codecs:builtin_video_decoder_factory",
+    "../api/video_codecs:builtin_video_encoder_factory",
+    "../common_video",
+    "../media",
+    "../pc:peerconnection",
+    "../rtc_base"
+  ]
+}
+
+rtc_shared_library("webrtc_c") {
+  deps = [":c"]
 }
 
 rtc_source_set("media_constraints") {
