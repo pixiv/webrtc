@@ -37,6 +37,7 @@ static const int STUN_ATTR_MULTI_MAPPING = 0xff04;
 
 // TODO(juberti): Extract to turnmessage.h
 static const int TURN_DEFAULT_PORT = 3478;
+static const int TURN_CHANNEL_NUMBER_UNBOUND = -1;
 static const int TURN_CHANNEL_NUMBER_START = 0x4000;
 static const int TURN_PERMISSION_TIMEOUT = 5 * 60 * 1000;  // 5 minutes
 
@@ -601,12 +602,11 @@ int TurnPort::SendTo(const void* data,
                      const rtc::SocketAddress& addr,
                      const rtc::PacketOptions& options,
                      bool payload) {
-  // Try to find an entry for this specific address; we should have one.
+  // Try to find an entry for this specific address.
+  TurnEntry temporary_entry { this, TURN_CHANNEL_NUMBER_UNBOUND, addr, { } };
   TurnEntry* entry = FindEntry(addr);
   if (!entry) {
-    RTC_LOG(LS_ERROR) << "Did not find the TurnEntry for address "
-                      << addr.ToString();
-    return 0;
+    entry = &temporary_entry;
   }
 
   if (!ready()) {
@@ -1168,6 +1168,10 @@ bool TurnPort::CreateOrRefreshEntry(const rtc::SocketAddress& addr,
   TurnEntry* entry = FindEntry(addr);
   if (entry == nullptr) {
     entry = new TurnEntry(this, channel_number, addr, remote_ufrag);
+
+    // Creating permission for |ext_addr_|.
+    entry->SendCreatePermissionRequest(0);
+
     entries_.push_back(entry);
     return true;
   } else {
@@ -1714,8 +1718,6 @@ TurnEntry::TurnEntry(TurnPort* port,
       ext_addr_(ext_addr),
       state_(STATE_UNBOUND),
       remote_ufrag_(remote_ufrag) {
-  // Creating permission for |ext_addr_|.
-  SendCreatePermissionRequest(0);
 }
 
 void TurnEntry::SendCreatePermissionRequest(int delay) {
@@ -1725,6 +1727,7 @@ void TurnEntry::SendCreatePermissionRequest(int delay) {
 }
 
 void TurnEntry::SendChannelBindRequest(int delay) {
+  RTC_DCHECK_NE(channel_id_, TURN_CHANNEL_NUMBER_UNBOUND);
   port_->SendRequest(
       new TurnChannelBindRequest(port_, this, channel_id_, ext_addr_), delay);
 }
@@ -1752,7 +1755,8 @@ int TurnEntry::Send(const void* data,
     RTC_DCHECK(success);
 
     // If we're sending real data, request a channel bind that we can use later.
-    if (state_ == STATE_UNBOUND && payload) {
+    if (channel_id_ != TURN_CHANNEL_NUMBER_UNBOUND && state_ == STATE_UNBOUND &&
+        payload) {
       SendChannelBindRequest(0);
       state_ = STATE_BINDING;
     }
