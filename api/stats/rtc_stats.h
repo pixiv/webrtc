@@ -279,14 +279,40 @@ class RTCStatsMemberInterface {
   bool is_defined_;
 };
 
+template <typename T>
+struct RTCStatsMemberTypeInternal;
+
+#define WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(T, type)                             \
+  template<>                                                                   \
+  struct RTCStatsMemberTypeInternal<T> {                                       \
+    static constexpr RTCStatsMemberInterface::Type kValue =                    \
+      RTCStatsMemberInterface::type;                                           \
+  };
+
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(bool, kBool)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(int32_t, kInt32)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(uint32_t, kUint32)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(int64_t, kInt64)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(uint64_t, kUint64)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(double, kDouble)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(std::string, kString)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(std::vector<bool>, kSequenceBool)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(std::vector<int32_t>, kSequenceInt32)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(std::vector<uint32_t>, kSequenceUint32)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(std::vector<int64_t>, kSequenceInt64)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(std::vector<uint64_t>, kSequenceUint64)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(std::vector<double>, kSequenceDouble)
+WEBRTC_DEFINE_RTCSTATSMEMBER_TYPE(std::vector<std::string>, kSequenceString)
+
 // Template implementation of |RTCStatsMemberInterface|. Every possible |T| is
-// specialized in rtcstats.cc, using a different |T| results in a linker error
-// (undefined reference to |kType|). The supported types are the ones described
+// specialized in this file for kType and in rtcstats.cc for functions, using a
+// different |T| results in a compile error (undefined reference to
+// |RTCStatsMemberTypeInternal<T>|). The supported types are the ones described
 // by |RTCStatsMemberInterface::Type|.
 template <typename T>
 class RTC_EXPORT RTCStatsMember : public RTCStatsMemberInterface {
  public:
-  static const Type kType;
+  static constexpr Type kType = RTCStatsMemberTypeInternal<T>::kValue;
 
   explicit RTCStatsMember(const char* name)
       : RTCStatsMemberInterface(name, /*is_defined=*/false), value_() {}
