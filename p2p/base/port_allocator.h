@@ -19,6 +19,7 @@
 #include "api/transport/enums.h"
 #include "p2p/base/port.h"
 #include "p2p/base/port_interface.h"
+#include "rtc_base/constructor_magic.h"
 #include "rtc_base/helpers.h"
 #include "rtc_base/proxy_info.h"
 #include "rtc_base/ssl_certificate.h"
@@ -663,6 +664,8 @@ class RTC_EXPORT PortAllocator : public sigslot::has_slots<> {
   // if ice_credentials is nullptr.
   std::vector<std::unique_ptr<PortAllocatorSession>>::const_iterator
   FindPooledSession(const IceParameters* ice_credentials = nullptr) const;
+
+  RTC_DISALLOW_COPY_AND_ASSIGN(PortAllocator);
 };
 
 }  // namespace cricket
