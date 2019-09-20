@@ -24,6 +24,7 @@
 #include "api/video_codecs/video_encoder.h"
 #include "modules/video_coding/include/video_codec_interface.h"
 #include "rtc_base/atomic_ops.h"
+#include "rtc_base/constructor_magic.h"
 #include "rtc_base/synchronization/sequence_checker.h"
 #include "rtc_base/system/rtc_export.h"
 
@@ -122,6 +123,8 @@ class RTC_EXPORT SimulcastEncoderAdapter : public VideoEncoder {
 
   const absl::optional<unsigned int> experimental_boosted_screenshare_qp_;
   const bool boost_base_layer_quality_;
+
+  RTC_DISALLOW_COPY_AND_ASSIGN(SimulcastEncoderAdapter);
 };
 
 }  // namespace webrtc
