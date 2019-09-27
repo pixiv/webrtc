@@ -37,6 +37,8 @@ rtc_library("video_rtp_headers") {
 rtc_library("video_frame") {
   visibility = [ "*" ]
   sources = [
+    "video_buffer.cc",
+    "video_buffer.h",
     "video_codec_type.h",
     "video_frame.cc",
     "video_frame.h",

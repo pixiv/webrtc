@@ -88,6 +88,9 @@ if (!build_with_chromium) {
         ]
       }
     }
+    if (rtc_enable_symbol_export && !is_android) {
+      deps += [ ":jingle_peerconnection_so" ]
+    }
   }
 }
 
@@ -428,9 +431,10 @@ config("common_objc") {
 if (!build_with_chromium) {
   # Target to build all the WebRTC production code.
   rtc_static_library("webrtc") {
-    # Only the root target and the test should depend on this.
+    # Only the root target, "shared:webrtc", and the test should depend on this.
     visibility = [
       "//:default",
+      "shared:webrtc",
       "//:webrtc_lib_link_test",
     ]
 
@@ -701,6 +705,16 @@ if (rtc_include_tests) {
       "audio/voip/test:audio_ingress_unittests",
       "audio/voip/test:voip_core_unittests",
       "test:test_main",
+    ]
+  }
+}
+
+if (!is_android) {
+  rtc_shared_library("jingle_peerconnection_so") {
+    deps = [
+      "sdk/c",
+      "pc:libjingle_peerconnection",
+      "rtc_base",
     ]
   }
 }

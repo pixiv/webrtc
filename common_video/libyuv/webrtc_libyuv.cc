@@ -138,6 +138,22 @@ int ConvertFromI420(const VideoFrame& src_frame,
       ConvertVideoType(dst_video_type));
 }
 
+int ConvertToI420(VideoType src_video_type,
+                  int src_sample_size,
+                  int src_width,
+                  int src_height,
+                  const uint8_t* src_frame,
+                  rtc::scoped_refptr<I420Buffer> dst_frame,
+                  int crop_x,
+                  int crop_y) {
+  return libyuv::ConvertToI420(
+      src_frame, src_sample_size, dst_frame->MutableDataY(),
+      dst_frame->StrideY(), dst_frame->MutableDataU(), dst_frame->StrideU(),
+      dst_frame->MutableDataV(), dst_frame->StrideV(), crop_x, crop_y,
+      src_width, src_height, dst_frame->width(), dst_frame->height(),
+      libyuv::RotationMode::kRotate0, ConvertVideoType(src_video_type));
+}
+
 // Helper functions for keeping references alive.
 void KeepBufferRefs(rtc::scoped_refptr<webrtc::VideoFrameBuffer>,
                     rtc::scoped_refptr<webrtc::VideoFrameBuffer>) {}

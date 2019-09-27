@@ -1,0 +1,142 @@
+# Copyright 2020 pixiv Inc. All Rights Reserved.
+#
+# Use of this source code is governed by a license that can be
+# found in the LICENSE.pixiv file in the root of the source tree.
+
+env:
+  DEPOT_TOOLS_UPDATE: '0'
+  DEPOT_TOOLS_WIN_TOOLCHAIN: '0'
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  android:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 2.7.18
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: docker system prune -af
+      - run: src/.github/bin/setup.ps1
+      - run: gclient config --name=src --unmanaged "https://github.com/$GITHUB_REPOSITORY.git"
+      - run: gclient sync --deps=android,unix --no-history --shallow
+      - run: dotnet build src/sdk/dotnet/unity /p:Configuration=Release /p:Targets=Android
+      - run: src/.github/bin/collect.ps1
+      - uses: actions/upload-artifact@v2
+        with:
+          name: android
+          path: artifacts
+
+  ios:
+    runs-on: macos-11.0
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
+      - run: src/.github/bin/setup.ps1
+      - run: gclient config --name=src --unmanaged "https://github.com/$GITHUB_REPOSITORY.git"
+      - run: gclient sync --deps=ios,mac --no-history --shallow
+      - run: dotnet build src/sdk/dotnet/unity /p:Configuration=Release /p:Targets=Ios
+      - run: src/.github/bin/collect.ps1
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ios
+          path: artifacts
+
+  linux:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 2.7.18
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: src/.github/bin/setup.ps1
+      - run: gclient config --name=src --unmanaged "https://github.com/$GITHUB_REPOSITORY.git"
+      - run: gclient sync --no-history --shallow
+      - run: dotnet build src/sdk/dotnet/unity /p:Configuration=Release /p:Targets=LinuxX64
+      - run: src/.github/bin/collect.ps1
+      - uses: actions/upload-artifact@v2
+        with:
+          name: linux
+          path: artifacts
+
+  mac:
+    runs-on: macos-11.0
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
+      - run: src/.github/bin/setup.ps1
+      - run: gclient config --name=src --unmanaged "https://github.com/$GITHUB_REPOSITORY.git"
+      - run: gclient sync --no-history --shallow
+      - run: dotnet build src/sdk/dotnet/unity /p:Configuration=Release /p:Targets=MacX64
+      - run: src/.github/bin/collect.ps1
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mac
+          path: artifacts
+
+  windows:
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: src/.github/bin/setup.ps1
+      - run: depot_tools/bootstrap/win_tools.bat
+      - run: gclient config --name=src --unmanaged "https://github.com/$env:GITHUB_REPOSITORY.git"
+      - run: gclient sync --no-history --shallow
+      - run: dotnet build src\sdk\dotnet\unity /p:Configuration=Release /p:Targets=WinX64
+      - run: src/.github/bin/collect.ps1
+      - uses: actions/upload-artifact@v2
+        with:
+          name: windows
+          path: artifacts
+
+  package:
+    needs:
+      - android
+      - ios
+      - linux
+      - mac
+      - windows
+
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 2.7.18
+      - uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+      - run: mv artifacts/android unified
+      - run: rsync -a artifacts/ios/ artifacts/linux/ artifacts/mac/ artifacts/windows/ unified
+      - run: rm -r artifacts
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: src/.github/bin/setup.ps1
+      - run: gclient config --name=src --unmanaged "https://github.com/$GITHUB_REPOSITORY.git"
+      - run: gclient sync --deps=android --no-history --shallow
+      - run: find unified/desc -type f | xargs src/tools_webrtc/libs/json2licenses.py unified/package
+      - run: rm -rf src
+      - run: tar -czf com.pixiv.webrtc.tgz -C unified package
+      - uses: actions/upload-artifact@v2
+        with:
+          name: package
+          path: com.pixiv.webrtc.tgz

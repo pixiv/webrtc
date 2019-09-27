@@ -13,6 +13,8 @@
 // defined in http://dev.w3.org/2011/webrtc/editor/webrtc.html#stream-api. These
 // interfaces must be used only with PeerConnection.
 
+#include "sdk/c/api/media_stream_interface.h"
+
 #ifndef API_MEDIA_STREAM_INTERFACE_H_
 #define API_MEDIA_STREAM_INTERFACE_H_
 
@@ -56,7 +58,12 @@ class NotifierInterface {
 class RTC_EXPORT MediaSourceInterface : public rtc::RefCountInterface,
                                         public NotifierInterface {
  public:
-  enum SourceState { kInitializing, kLive, kEnded, kMuted };
+  enum SourceState {
+    kInitializing = WEBRTC_MEDIA_SOURCE_INTERFACE_SOURCE_STATE_INITIALIZING,
+    kLive = WEBRTC_MEDIA_SOURCE_INTERFACE_SOURCE_STATE_LIVE,
+    kEnded = WEBRTC_MEDIA_SOURCE_INTERFACE_SOURCE_STATE_ENDED,
+    kMuted = WEBRTC_MEDIA_SOURCE_INTERFACE_SOURCE_STATE_MUTED
+  };
 
   virtual SourceState state() const = 0;
 

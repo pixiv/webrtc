@@ -18,6 +18,8 @@ if (is_mac) {
 group("sdk") {
   public_deps = []
   if (!build_with_chromium) {
+    public_deps += [ "c" ]
+
     if (is_android) {
       public_deps += [ "android" ]
     }
@@ -41,7 +43,10 @@ rtc_library("media_constraints") {
 
 rtc_library("sdk_tests") {
   testonly = true
-  sources = [ "media_constraints_unittest.cc" ]
+  sources = [
+    "c_headers_test.c",
+    "media_constraints_unittest.cc",
+  ]
   deps = [
     ":media_constraints",
     "../test:test_support",
@@ -1374,6 +1379,7 @@ if (is_ios || is_mac) {
         deps = [
           ":audio_objc",
           ":base_objc",
+          ":c_api",
           ":default_codec_factory_objc",
           ":native_api",
           ":native_video",
@@ -1507,6 +1513,7 @@ if (is_ios || is_mac) {
 
         deps = [
           ":base_objc",
+          ":c_api",
           ":default_codec_factory_objc",
           ":native_api",
           ":native_video",
@@ -1562,6 +1569,19 @@ if (is_ios || is_mac) {
         ":helpers_objc",
         "../api/video_codecs:video_codecs_api",
         "../media:rtc_media_base",
+      ]
+    }
+
+    rtc_static_library("c_api") {
+      allow_poison = [
+        "audio_codecs",
+        "software_video_codecs",
+      ]
+      sources = [
+        "objc/helpers/noop.mm",
+      ]
+      deps = [
+        "c",
       ]
     }
 
