@@ -1,0 +1,65 @@
+# Copyright 2019 pixiv Inc. All Rights Reserved.
+#
+# Use of this source code is governed by a license that can be
+# found in the LICENSE.pixiv file in the root of the source tree.
+
+import("../../../webrtc.gni")
+
+rtc_source_set("audio_codecs") {
+  sources = [
+    "audio_codecs.cc",
+    "audio_codecs.h",
+  ]
+  deps = [
+    "../../../api/audio_codecs:builtin_audio_decoder_factory",
+    "../../../api/audio_codecs:builtin_audio_encoder_factory",
+  ]
+}
+
+rtc_source_set("create_peerconnection_factory") {
+  sources = [
+    "create_peerconnection_factory.cc",
+    "create_peerconnection_factory.h",
+  ]
+  deps = [
+    "../../../api:create_peerconnection_factory",
+  ]
+}
+
+rtc_source_set("libjingle_peerconnection_api") {
+  sources = [
+    "async_resolver_factory.h",
+    "candidate.cc",
+    "candidate.h",
+    "data_channel_interface.cc",
+    "data_channel_interface.h",
+    "jsep.cc",
+    "jsep.h",
+    "media_stream_interface.cc",
+    "media_stream_interface.h",
+    "peer_connection_interface.cc",
+    "peer_connection_interface.h",
+    "rtc_error.cc",
+    "rtc_error.h",
+    "rtp_receiver_interface.cc",
+    "rtp_receiver_interface.h",
+    "rtp_sender_interface.cc",
+    "rtp_sender_interface.h",
+    "rtp_transceiver_interface.cc",
+    "rtp_transceiver_interface.h",
+  ]
+  deps = [
+    "../../../api:libjingle_peerconnection_api",
+  ]
+}
+
+rtc_source_set("video_codecs") {
+  sources = [
+    "video_codecs.cc",
+    "video_codecs.h",
+  ]
+  deps = [
+    "../../../api/video_codecs:builtin_video_decoder_factory",
+    "../../../api/video_codecs:builtin_video_encoder_factory",
+  ]
+}

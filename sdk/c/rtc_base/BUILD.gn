@@ -1,0 +1,21 @@
+# Copyright 2019 pixiv Inc. All Rights Reserved.
+#
+# Use of this source code is governed by a license that can be
+# found in the LICENSE.pixiv file in the root of the source tree.
+
+import("../../../webrtc.gni")
+
+rtc_source_set("rtc_base") {
+  sources = [
+    "message_queue.cc",
+    "message_queue.h",
+    "rtc_certificate.h",
+    "rtc_certificate_generator.h",
+    "ssl_certificate.h",
+    "thread.cc",
+    "thread.h",
+  ]
+  deps = [
+    "../../../rtc_base",
+  ]
+}

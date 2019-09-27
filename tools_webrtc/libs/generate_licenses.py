@@ -69,6 +69,7 @@ LIB_TO_LICENSES_DICT = {
     'webrtc (additions made by pixiv Inc.)': ['LICENSE.pixiv'],
 
     # Compile time dependencies, no license needed:
+    'nasm': [],
     'yasm': [],
     'ow2_asm': [],
 }
@@ -117,8 +118,7 @@ class LicenseBuilder(object):
     if lib_regex_to_licenses_dict is None:
       lib_regex_to_licenses_dict = LIB_REGEX_TO_LICENSES_DICT
 
-    self.buildfile_dirs = buildfile_dirs
-    self.targets = targets
+    self.builds = [(buildfile_dir, targets) for buildfile_dir in buildfile_dirs]
     self.lib_to_licenses_dict = lib_to_licenses_dict
     self.lib_regex_to_licenses_dict = lib_regex_to_licenses_dict
 
@@ -181,12 +181,16 @@ class LicenseBuilder(object):
       libraries |= set(lib for lib in third_party_libs if lib)
     return libraries
 
+  def AddBuild(self, buildfile_dirs, targets):
+    for buildfile_dir in buildfile_dirs:
+      self.builds.append((buildfile_dir, targets))
+
   def GenerateLicenseText(self, output_dir):
     # Get a list of third_party libs from gn. For fat libraries we must consider
     # all architectures, hence the multiple buildfile directories.
     third_party_libs = set()
-    for buildfile in self.buildfile_dirs:
-      for target in self.targets:
+    for (buildfile, targets) in self.builds:
+      for target in targets:
         third_party_libs |= self._GetThirdPartyLibraries(buildfile, target)
     assert len(third_party_libs) > 0
 

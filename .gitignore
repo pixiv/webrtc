@@ -41,9 +41,17 @@
 /base
 /build
 /buildtools
+/examples/unity/*
+!/examples/unity/Assets
+!/examples/unity/Packages
+!/examples/unity/ProjectSettings
 /ios
 /mojo
 /out
+/sdk/dotnet/unity/bin
+/sdk/dotnet/unity/obj
+/sdk/dotnet/webrtc/bin
+/sdk/dotnet/webrtc/obj
 /testing
 /third_party
 /tools
