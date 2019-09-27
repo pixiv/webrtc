@@ -8,6 +8,8 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+#include "sdk/c/api/video/video_rotation.h"
+
 #ifndef API_VIDEO_VIDEO_ROTATION_H_
 #define API_VIDEO_VIDEO_ROTATION_H_
 
@@ -15,10 +17,10 @@ namespace webrtc {
 
 // enum for clockwise rotation.
 enum VideoRotation {
-  kVideoRotation_0 = 0,
-  kVideoRotation_90 = 90,
-  kVideoRotation_180 = 180,
-  kVideoRotation_270 = 270
+  kVideoRotation_0 = WEBRTC_VIDEO_RATION_0,
+  kVideoRotation_90 = WEBRTC_VIDEO_RATION_90,
+  kVideoRotation_180 = WEBRTC_VIDEO_RATION_180,
+  kVideoRotation_270 = WEBRTC_VIDEO_RATION_270
 };
 
 }  // namespace webrtc

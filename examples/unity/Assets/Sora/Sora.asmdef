@@ -1,0 +1,14 @@
+{
+    "name": "Sora",
+    "references": [
+        "GUID:1b273e34d421cda92af917e8f10bcb8b"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}

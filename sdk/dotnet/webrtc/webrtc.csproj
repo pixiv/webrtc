@@ -1,0 +1,19 @@
+<!--
+    Copyright 2019 pixiv Inc. All Rights Reserved.
+
+    Use of this source code is governed by a BSD-style license
+    that can be found in the LICENSE file in the root of the source
+    tree.
+-->
+
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyTitle>WebRTC</AssemblyTitle>
+    <AssemblyVersion>77.0.0.0</AssemblyVersion>
+    <Company>pixiv Inc.</Company>
+    <Copyright>&#xA9; pixiv Inc. 2019</Copyright>
+    <Description>WebRTC is a free, open project that provides browsers and mobile applications with Real-Time Communications (RTC) capabilities via simple APIs.</Description>
+    <LangVersion>7.3</LangVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+</Project>

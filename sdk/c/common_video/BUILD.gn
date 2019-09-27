@@ -1,0 +1,16 @@
+# Copyright 2019 pixiv Inc. All Rights Reserved.
+#
+# Use of this source code is governed by a license that can be
+# found in the LICENSE.pixiv file in the root of the source tree.
+
+import("../../../webrtc.gni")
+
+rtc_source_set("common_video") {
+  sources = [
+    "libyuv.cc",
+    "libyuv.h",
+  ]
+  deps = [
+    "../../../common_video",
+  ]
+}

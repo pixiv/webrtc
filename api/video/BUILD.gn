@@ -52,6 +52,8 @@ rtc_library("video_frame") {
     "i444_buffer.h",
     "nv12_buffer.cc",
     "nv12_buffer.h",
+    "video_buffer.cc",
+    "video_buffer.h",
     "video_codec_type.h",
     "video_frame.cc",
     "video_frame.h",

@@ -12,6 +12,8 @@
  * WebRTC's wrapper to libyuv.
  */
 
+#include "sdk/c/common_video/libyuv.h"
+
 #ifndef COMMON_VIDEO_LIBYUV_INCLUDE_WEBRTC_LIBYUV_H_
 #define COMMON_VIDEO_LIBYUV_INCLUDE_WEBRTC_LIBYUV_H_
 
@@ -21,6 +23,7 @@
 #include <vector>
 
 #include "api/scoped_refptr.h"
+#include "api/video/i420_buffer.h"
 #include "api/video/video_frame.h"
 #include "api/video/video_frame_buffer.h"
 #include "rtc_base/system/rtc_export.h"
@@ -28,17 +31,17 @@
 namespace webrtc {
 
 enum class VideoType {
-  kUnknown,
-  kI420,
-  kIYUV,
-  kRGB24,
-  kARGB,
-  kRGB565,
-  kYUY2,
-  kYV12,
-  kUYVY,
-  kMJPEG,
-  kBGRA,
+  kUnknown = WEBRTC_VIDEO_TYPE_UNKNOWN,
+  kI420 = WEBRTC_VIDEO_TYPE_I420,
+  kIYUV = WEBRTC_VIDEO_TYPE_IYUV,
+  kRGB24 = WEBRTC_VIDEO_TYPE_RGB24,
+  kARGB = WEBRTC_VIDEO_TYPE_ARGB,
+  kRGB565 = WEBRTC_VIDEO_TYPE_RGB565,
+  kYUY2 = WEBRTC_VIDEO_TYPE_YUY2,
+  kYV12 = WEBRTC_VIDEO_TYPE_YV12,
+  kUYVY = WEBRTC_VIDEO_TYPE_UYVY,
+  kMJPEG = WEBRTC_VIDEO_TYPE_MJPEG,
+  kBGRA = WEBRTC_VIDEO_TYPE_BGRA,
 };
 
 // This is the max PSNR value our algorithms can return.
@@ -77,6 +80,15 @@ int ConvertFromI420(const VideoFrame& src_frame,
                     VideoType dst_video_type,
                     int dst_sample_size,
                     uint8_t* dst_frame);
+
+int ConvertToI420(VideoType src_video_type,
+                  int src_sample_size,
+                  int src_width,
+                  int src_height,
+                  const uint8_t* src_frame,
+                  rtc::scoped_refptr<I420Buffer> dst_frame,
+                  int crop_x,
+                  int crop_y);
 
 rtc::scoped_refptr<I420BufferInterface> ScaleVideoFrameBuffer(
     const I420BufferInterface& source,

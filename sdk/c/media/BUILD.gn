@@ -1,0 +1,26 @@
+# Copyright 2019 pixiv Inc. All Rights Reserved.
+#
+# Use of this source code is governed by a license that can be
+# found in the LICENSE.pixiv file in the root of the source tree.
+
+import("../../../webrtc.gni")
+
+group("media") {
+  deps = []
+  if (!build_with_mozilla) {
+    deps += [ ":rtc_media_base" ]
+  }
+}
+
+rtc_source_set("rtc_media_base") {
+  sources = [
+    "base/adapted_video_track_source.cc",
+    "base/adapted_video_track_source.h",
+    "base/media_engine.cc",
+    "base/media_engine.h",
+    "base/video_adapter.h",
+  ]
+  deps = [
+    "../../../media:rtc_media_base",
+  ]
+}

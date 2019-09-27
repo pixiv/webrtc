@@ -110,6 +110,9 @@ if (!build_with_chromium) {
     if (target_os == "android") {
       deps += [ "tools_webrtc:binary_version_check" ]
     }
+    if (rtc_enable_symbol_export && !is_android) {
+      deps += [ ":jingle_peerconnection_so" ]
+    }
   }
 }
 
@@ -449,9 +452,10 @@ config("common_objc") {
 if (!build_with_chromium) {
   # Target to build all the WebRTC production code.
   rtc_static_library("webrtc") {
-    # Only the root target and the test should depend on this.
+    # Only the root target, "shared:webrtc", and the test should depend on this.
     visibility = [
       "//:default",
+      "shared:webrtc",
       "//:webrtc_lib_link_test",
     ]
 
@@ -745,6 +749,15 @@ rtc_static_library("dcsctp") {
     "net/dcsctp/socket:dcsctp_socket",
     "net/dcsctp/timer:task_queue_timeout",
   ]
+}
+if (!is_android) {
+  rtc_shared_library("jingle_peerconnection_so") {
+    deps = [
+      "sdk/c",
+      "pc:libjingle_peerconnection",
+      "rtc_base",
+    ]
+  }
 }
 
 # ---- Poisons ----

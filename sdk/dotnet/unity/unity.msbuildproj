@@ -1,0 +1,171 @@
+<!--
+    Copyright 2019 pixiv Inc. All Rights Reserved.
+
+    Use of this source code is governed by a BSD-style license
+    that can be found in the LICENSE file in the root of the source
+    tree.
+-->
+
+<Project>
+    <PropertyGroup>
+        <BaseOutputPath>bin/</BaseOutputPath>
+        <Configuration>Debug</Configuration>
+        <OutputPath>$(BaseOutputPath)$(Configuration)/</OutputPath>
+    </PropertyGroup>
+    <Import Project="$(MSBuildToolsPath)/Microsoft.Common.targets" />
+    <PropertyGroup>
+        <IsDebug Condition="'$(Configuration)' == Debug">true</IsDebug>
+        <IsDebug Condition="'$(Configuration)' != Debug">false</IsDebug>
+        <Targets>Android;Ios;LinuxX64;MacX64;WinX64</Targets>
+        <ParsibleTargets>;$(Targets);</ParsibleTargets>
+        <SourceRootPath>$(MSBuildThisFileDirectory)../../../</SourceRootPath>
+        <EscapedIntermediateOutputPath>"$(IntermediateOutputPath.Replace('\', '\\').Replace('"', '\"'))"</EscapedIntermediateOutputPath>
+        <EscapedMSBuildThisFileDirectory>"$(MSBuildThisFileDirectory.Replace('\', '\\').Replace('"', '\"'))"</EscapedMSBuildThisFileDirectory>
+        <EscapedOutputPath>"$(OutputPath.Replace('\', '\\').Replace('"', '\"'))"</EscapedOutputPath>
+        <EscapedSourceRootPath>$(EscapedMSBuildThisFileDirectory)../../..</EscapedSourceRootPath>
+        <EscapedTargets>"$(Targets.Replace('\', '\\').Replace('"', '\"'))"</EscapedTargets>
+    </PropertyGroup>
+    <Target Name="Build" DependsOnTargets="BuildAndroid;BuildIos;BuildLinuxX64;BuildMacX64;BuildWinX64;Json2Licenses">
+        <Copy
+            DestinationFolder="$(OutputPath)"
+            SourceFiles="$(SourceRootPath)PATENTS;$(SourceRootPath)README.md;$(MSBuildThisFileDirectory)LICENSE.md.meta;$(MSBuildThisFileDirectory)PATENTS.meta;$(MSBuildThisFileDirectory)README.md.meta;$(MSBuildThisFileDirectory)Runtime.meta;$(MSBuildThisFileDirectory)package.json;$(MSBuildThisFileDirectory)package.json.meta" />
+    </Target>
+    <Target Name="Json2Licenses" DependsOnTargets="BuildAndroid;BuildIos;BuildLinuxX64;BuildMacX64;BuildWinX64">
+        <ItemGroup>
+            <Desc
+                Condition="$(ParsibleTargets.Contains(';Android;'))"
+                Include="$(EscapedIntermediateOutputPath)desc/android/armeabi-v7a/libwebrtc.json;$(EscapedIntermediateOutputPath)desc/android/armeabi-v7a/libjingle_peerconnection_so.json;$(EscapedIntermediateOutputPath)desc/android/arm64-v8a/libwebrtc.json;$(EscapedIntermediateOutputPath)desc/android/arm64-v8a/libjingle_peerconnection_so.json" />
+            <Desc
+                Condition="$(ParsibleTargets.Contains(';Ios;'))"
+                Include="$(EscapedIntermediateOutputPath)desc/ios_libs/arm_libs/framework_objc.json;$(EscapedIntermediateOutputPath)desc/ios_libs/arm64_libs/framework_objc.json;$(EscapedIntermediateOutputPath)desc/ios_libs/x64_libs/framework_objc.json" />
+            <Desc
+                Condition="$(ParsibleTargets.Contains(';LinuxX64;'))"
+                Include="$(EscapedIntermediateOutputPath)desc/linux_x64/jingle_peerconnection_so.json" />
+            <Desc
+                Condition="$(ParsibleTargets.Contains(';MacX64;'))"
+                Include="$(EscapedIntermediateOutputPath)desc/mac_x64/jingle_peerconnection_so.json" />
+            <Desc
+                Condition="$(ParsibleTargets.Contains(';WinX64;'))"
+                Include="$(EscapedIntermediateOutputPath)desc/win_x64/jingle_peerconnection_so.json" />
+        </ItemGroup>
+        <Exec Command="python ../../../tools_webrtc/libs/json2licenses.py $(EscapedOutputPath) @(Desc, ' ')" />
+    </Target>
+    <Target Condition="$(ParsibleTargets.Contains(';Android;'))" Name="BuildAndroid" DependsOnTargets="BuildExternal">
+        <ConvertToAbsolutePath Paths="$(IntermediateOutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteIntermediateOutputPath" />
+        </ConvertToAbsolutePath>
+        <ConvertToAbsolutePath Paths="$(OutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteOutputPath" />
+        </ConvertToAbsolutePath>
+        <Exec
+            Command="./tools_webrtc/android/build_aar.py --build-dir $(AbsoluteIntermediateOutputPath.Replace('\', '\\').Replace('&quot;', '\&quot;'))build/android --output $(AbsoluteOutputPath.Replace('\', '\\').Replace('&quot;', '\&quot;'))Runtime/libwebrtc.aar --arch armeabi-v7a arm64-v8a --extra-gn-args is_debug=$(IsDebug) rtc_enable_symbol_export=true"
+            WorkingDirectory="$(SourceRootPath)" />
+        <Delete Files="$(OutputPath)/Runtime/LICENSE.md" />
+        <MakeDir Directories="$(IntermediateOutputPath)desc/android/armeabi-v7a;$(IntermediateOutputPath)desc/android/arm64-v8a" />
+        <Exec Command="gn desc --all --format=json $(EscapedIntermediateOutputPath)build/android/armeabi-v7a //sdk/android:libwebrtc > $(EscapedIntermediateOutputPath)desc/android/armeabi-v7a/libwebrtc.json" />
+        <Exec Command="gn desc --all --format=json $(EscapedIntermediateOutputPath)build/android/armeabi-v7a //sdk/android:libjingle_peerconnection_so > $(EscapedIntermediateOutputPath)desc/android/armeabi-v7a/libjingle_peerconnection_so.json" />
+        <Exec Command="gn desc --all --format=json $(EscapedIntermediateOutputPath)build/android/arm64-v8a //sdk/android:libwebrtc > $(EscapedIntermediateOutputPath)desc/android/arm64-v8a/libwebrtc.json" />
+        <Exec Command="gn desc --all --format=json $(EscapedIntermediateOutputPath)build/android/arm64-v8a //sdk/android:libjingle_peerconnection_so > $(EscapedIntermediateOutputPath)desc/android/arm64-v8a/libjingle_peerconnection_so.json" />
+    </Target>
+    <Target Name="BuildExternal">
+        <ConvertToAbsolutePath Paths="$(BaseIntermediateOutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteBaseIntermediateOutputPath" />
+        </ConvertToAbsolutePath>
+        <ConvertToAbsolutePath Paths="$(IntermediateOutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteIntermediateOutputPath" />
+        </ConvertToAbsolutePath>
+        <ConvertToAbsolutePath Paths="$(OutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteOutputPath" />
+        </ConvertToAbsolutePath>
+        <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(MSBuildThisFileDirectory)Runtime/external.meta" />
+        <Copy DestinationFolder="$(OutputPath)Runtime/external" SourceFiles="$(MSBuildThisFileDirectory)Runtime/external/webrtc.deps.json.meta;$(MSBuildThisFileDirectory)Runtime/external/webrtc.dll.meta;$(MSBuildThisFileDirectory)Runtime/external/webrtc.pdb.meta" />
+        <MSBuild
+            Projects="../webrtc/webrtc.csproj"
+            Properties="AppendTargetFrameworkToOutputPath=false;BaseIntermediateOutputPath=$(AbsoluteBaseIntermediateOutputPath);IntermediateOutputPath=$(AbsoluteIntermediateOutputPath)external/;OutputPath=$(AbsoluteOutputPath)Runtime/external/"
+            Targets="Build" />
+    </Target>
+    <Target Name="BuildInternal">
+        <ConvertToAbsolutePath Paths="$(BaseIntermediateOutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteBaseIntermediateOutputPath" />
+        </ConvertToAbsolutePath>
+        <ConvertToAbsolutePath Paths="$(IntermediateOutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteIntermediateOutputPath" />
+        </ConvertToAbsolutePath>
+        <ConvertToAbsolutePath Paths="$(OutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteOutputPath" />
+        </ConvertToAbsolutePath>
+        <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(MSBuildThisFileDirectory)Runtime/internal.meta" />
+        <Copy DestinationFolder="$(OutputPath)Runtime/internal" SourceFiles="$(MSBuildThisFileDirectory)Runtime/internal/webrtc.deps.json.meta;$(MSBuildThisFileDirectory)Runtime/internal/webrtc.dll.meta;$(MSBuildThisFileDirectory)Runtime/internal/webrtc.pdb.meta" />
+        <MSBuild
+            Projects="../webrtc/webrtc.csproj"
+            Properties="AppendTargetFrameworkToOutputPath=false;BaseIntermediateOutputPath=$(AbsoluteBaseIntermediateOutputPath);DefineConstants=WEBRTC_INTERNAL;IntermediateOutputPath=$(AbsoluteIntermediateOutputPath)internal/;OutputPath=$(AbsoluteOutputPath)Runtime/internal/"
+            Targets="Build" />
+    </Target>
+    <Target Condition="$(ParsibleTargets.Contains(';Ios;'))" Name="BuildIos" DependsOnTargets="BuildInternal">
+        <ConvertToAbsolutePath Paths="$(IntermediateOutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteIntermediateOutputPath" />
+        </ConvertToAbsolutePath>
+        <ConvertToAbsolutePath Paths="$(OutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteOutputPath" />
+        </ConvertToAbsolutePath>
+        <Exec
+            Command="./tools_webrtc/ios/build_ios_libs.py --arch arm arm64 x64 --build_config debug -o $(AbsoluteIntermediateOutputPath.Replace('\', '\\').Replace('&quot;', '\&quot;'))build/ios_libs -e --extra-gn-args rtc_enable_symbol_export=true"
+            Condition="$(IsDebug)"
+            WorkingDirectory="$(SourceRootPath)" />
+        <Exec
+            Command="./tools_webrtc/ios/build_ios_libs.py --arch arm arm64 x64 -o $(AbsoluteIntermediateOutputPath.Replace('\', '\\').Replace('&quot;', '\&quot;'))build/ios_libs -e --extra-gn-args rtc_enable_symbol_export=true"
+            Condition="!$(IsDebug)"
+            WorkingDirectory="$(SourceRootPath)" />
+        <MakeDir Directories="$(IntermediateOutputPath)desc/ios_libs/arm_libs;$(IntermediateOutputPath)desc/ios_libs/arm64_libs;$(IntermediateOutputPath)desc/ios_libs/x64_libs" />
+        <Exec Command="gn desc --all --format=json $(EscapedIntermediateOutputPath)build/ios_libs/arm_libs //sdk:framework_objc > $(EscapedIntermediateOutputPath)desc/ios_libs/arm_libs/framework_objc.json" />
+        <Exec Command="gn desc --all --format=json $(EscapedIntermediateOutputPath)build/ios_libs/arm64_libs //sdk:framework_objc > $(EscapedIntermediateOutputPath)desc/ios_libs/arm64_libs/framework_objc.json" />
+        <Exec Command="gn desc --all --format=json $(EscapedIntermediateOutputPath)build/ios_libs/x64_libs //sdk:framework_objc > $(EscapedIntermediateOutputPath)desc/ios_libs/x64_libs/framework_objc.json" />
+        <RemoveDir Directories="$(OutputPath)Runtime/WebRTC.framework" />
+        <Exec Command="mv $(AbsoluteIntermediateOutputPath.Replace('\', '\\').Replace('&quot;', '\&quot;'))build/ios_libs/WebRTC.framework $(AbsoluteOutputPath.Replace('\', '\\').Replace('&quot;', '\&quot;'))Runtime" />
+        <Copy DestinationFolder="$(OutputPath)" SourceFiles="$(MSBuildThisFileDirectory)Editor.meta" />
+        <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(MSBuildThisFileDirectory)Runtime/WebRTC.framework.meta" />
+        <Copy
+            DestinationFolder="$(OutputPath)Editor"
+            SourceFiles="$(MSBuildThisFileDirectory)Editor/AssemblyInfo.cs;$(MSBuildThisFileDirectory)Editor/Processor.cs;$(MSBuildThisFileDirectory)Editor/Processor.cs.meta;$(MSBuildThisFileDirectory)Editor/Webrtc.Editor.asmdef;$(MSBuildThisFileDirectory)Editor/Webrtc.Editor.asmdef.meta" />
+    </Target>
+    <Target Condition="$(ParsibleTargets.Contains(';LinuxX64;'))" Name="BuildLinuxX64" DependsOnTargets="BuildExternal">
+        <Exec
+            Command="gn gen &quot;--args=is_debug=$(IsDebug) rtc_enable_symbol_export=true target_os=\&quot;linux\&quot; target_cpu=\&quot;x64\&quot;&quot; --root=$(EscapedSourceRootPath) $(EscapedIntermediateOutputPath)build/linux_x64"
+            Condition="!Exists('$(IntermediateOutputPath)build/linux_x64/build.ninja')" />
+        <Exec Command="ninja -C $(EscapedIntermediateOutputPath)build/linux_x64 :jingle_peerconnection_so" />
+        <MakeDir Directories="$(IntermediateOutputPath)desc/linux_x64" />
+        <Exec Command="gn desc --all --format=json $(EscapedIntermediateOutputPath)build/linux_x64 //:jingle_peerconnection_so > $(EscapedIntermediateOutputPath)desc/linux_x64/jingle_peerconnection_so.json" />
+        <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(IntermediateOutputPath)build/linux_x64/libjingle_peerconnection_so.so;$(MSBuildThisFileDirectory)Runtime/libjingle_peerconnection_so.so.meta" />
+    </Target>
+    <Target Condition="$(ParsibleTargets.Contains(';MacX64;'))" Name="BuildMacX64" DependsOnTargets="BuildExternal">
+        <Exec
+            Command="gn gen &quot;--args=is_debug=$(IsDebug) rtc_enable_symbol_export=true target_os=\&quot;mac\&quot; target_cpu=\&quot;x64\&quot;&quot; --root=$(EscapedSourceRootPath) $(EscapedIntermediateOutputPath)build/mac_x64"
+            Condition="!Exists('$(IntermediateOutputPath)build/mac_x64/build.ninja')" />
+        <Exec Command="ninja -C $(EscapedIntermediateOutputPath)build/mac_x64 :jingle_peerconnection_so" />
+        <MakeDir Directories="$(IntermediateOutputPath)desc/mac_x64" />
+        <Exec Command="gn desc --all --format=json $(EscapedIntermediateOutputPath)build/mac_x64 //:jingle_peerconnection_so > $(EscapedIntermediateOutputPath)desc/mac_x64/jingle_peerconnection_so.json" />
+        <Copy DestinationFiles="$(OutputPath)Runtime/jingle_peerconnection_so.dylib" SourceFiles="$(IntermediateOutputPath)build/mac_x64/libjingle_peerconnection_so.dylib" />
+        <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(MSBuildThisFileDirectory)Runtime/jingle_peerconnection_so.dylib.meta" />
+    </Target>
+    <Target Condition="$(ParsibleTargets.Contains(';WinX64;'))" Name="BuildWinX64" DependsOnTargets="BuildExternal">
+        <Exec
+            Command="gn gen &quot;--args=is_debug=$(IsDebug) rtc_enable_symbol_export=true target_os=\&quot;win\&quot; target_cpu=\&quot;x64\&quot;&quot; --root=$(SourceRootPath) $(EscapedIntermediateOutputPath)build/win_x64"
+            Condition="!Exists('$(IntermediateOutputPath)build/win_x64/build.ninja')" />
+        <Exec Command="ninja -C $(EscapedIntermediateOutputPath)build/win_x64 :jingle_peerconnection_so" />
+        <MakeDir Directories="$(IntermediateOutputPath)desc/win_x64" />
+        <Exec Command="gn desc --all --format=json $(EscapedIntermediateOutputPath)build/win_x64 //:jingle_peerconnection_so > $(EscapedIntermediateOutputPath)desc/win_x64/jingle_peerconnection_so.json" />
+        <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(IntermediateOutputPath)build/win_x64/jingle_peerconnection_so.dll;$(MSBuildThisFileDirectory)Runtime/jingle_peerconnection_so.dll.meta" />
+    </Target>
+    <Target Name="Restore">
+        <ConvertToAbsolutePath Paths="$(BaseIntermediateOutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteBaseIntermediateOutputPath" />
+        </ConvertToAbsolutePath>
+        <ConvertToAbsolutePath Paths="$(OutputPath)">
+            <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteOutputPath" />
+        </ConvertToAbsolutePath>
+        <MSBuild
+            Projects="../webrtc/webrtc.csproj"
+            Properties="AppendTargetFrameworkToOutputPath=false;BaseIntermediateOutputPath=$(AbsoluteBaseIntermediateOutputPath);OutputPath=$(AbsoluteOutputPath)Runtime/"
+            Targets="Restore" />
+    </Target>
+</Project>
