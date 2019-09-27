@@ -144,11 +144,11 @@ if (is_android) {
     ]
 
     suppressed_configs += [ "//build/config/android:hide_all_but_jni_onload" ]
-    configs += [ "//build/config/android:hide_all_but_jni" ]
 
     deps = [
       ":libjingle_peerconnection_jni",
       ":libjingle_peerconnection_metrics_default_jni",
+      "../c",
       "../../pc:libjingle_peerconnection",
       "../../rtc_base",
     ]
@@ -1421,12 +1421,12 @@ if (is_android) {
     ]
 
     suppressed_configs += [ "//build/config/android:hide_all_but_jni_onload" ]
-    configs += [ "//build/config/android:hide_all_but_jni" ]
 
     deps = [
       ":instrumentationtests_jni",
       ":libjingle_peerconnection_jni",
       ":libjingle_peerconnection_metrics_default_jni",
+      "../c",
       "../../pc:libjingle_peerconnection",
       "../../rtc_base",
     ]

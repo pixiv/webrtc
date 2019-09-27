@@ -80,6 +80,9 @@ if (!build_with_chromium) {
         ]
       }
     }
+    if (rtc_enable_symbol_export && !is_android) {
+      deps += [ ":jingle_peerconnection_so" ]
+    }
   }
 }
 
@@ -389,8 +392,8 @@ config("common_objc") {
 if (!build_with_chromium) {
   # Target to build all the WebRTC production code.
   rtc_static_library("webrtc") {
-    # Only the root target should depend on this.
-    visibility = [ "//:default" ]
+    # Only the root target and "shared:webrtc" should depend on this.
+    visibility = [ "//:default", "shared:webrtc" ]
 
     sources = []
     complete_static_lib = true
@@ -666,6 +669,16 @@ if (rtc_include_tests) {
             "robolectric.properties",
           ] ]
     }
+  }
+}
+
+if (!is_android) {
+  rtc_shared_library("jingle_peerconnection_so") {
+    deps = [
+      "sdk/c",
+      "pc:libjingle_peerconnection",
+      "rtc_base",
+    ]
   }
 }
 

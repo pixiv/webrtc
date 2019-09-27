@@ -17,6 +17,8 @@
 // Though in the future, we're planning to provide an SDP parsing API, with a
 // structure more friendly than cricket::SessionDescription.
 
+#include "sdk/c/api/jsep.h"
+
 #ifndef API_JSEP_H_
 #define API_JSEP_H_
 
@@ -100,11 +102,15 @@ class IceCandidateCollection {
 // Corresponds to RTCSdpType in the WebRTC specification.
 // https://w3c.github.io/webrtc-pc/#dom-rtcsdptype
 enum class SdpType {
-  kOffer,     // Description must be treated as an SDP offer.
-  kPrAnswer,  // Description must be treated as an SDP answer, but not a final
-              // answer.
-  kAnswer  // Description must be treated as an SDP final answer, and the offer-
-           // answer exchange must be considered complete after receiving this.
+  // Description must be treated as an SDP offer.
+  kOffer = WEBRTC_SDP_TYPE_OFFER,
+
+  // Description must be treated as an SDP answer, but not a final answer.
+  kPrAnswer = WEBRTC_SDP_TYPE_PR_ANSWER,
+
+  // Description must be treated as an SDP final answer, and the offer-
+  // answer exchange must be considered complete after receiving this.
+  kAnswer = WEBRTC_SDP_TYPE_ANSER
 };
 
 // Returns the string form of the given SDP type. String forms are defined in

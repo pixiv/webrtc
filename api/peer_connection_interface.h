@@ -64,6 +64,8 @@
 // 7. Once a candidate has been gathered, the PeerConnection will call the
 // observer function OnIceCandidate. Send these candidates to the remote peer.
 
+#include "sdk/c/api/peer_connection_interface.h"
+
 #ifndef API_PEER_CONNECTION_INTERFACE_H_
 #define API_PEER_CONNECTION_INTERFACE_H_
 
@@ -150,58 +152,80 @@ class StatsObserver : public rtc::RefCountInterface {
   ~StatsObserver() override = default;
 };
 
-enum class SdpSemantics { kPlanB, kUnifiedPlan };
+enum class SdpSemantics {
+  kPlanB = WEBRTC_SDP_SEMANTICS_PLAN_B,
+  kUnifiedPlan = WEBRTC_SDP_SEMANTICS_UNIFIED_PLAN
+};
 
 class RTC_EXPORT PeerConnectionInterface : public rtc::RefCountInterface {
  public:
   // See https://w3c.github.io/webrtc-pc/#dom-rtcsignalingstate
   enum SignalingState {
-    kStable,
-    kHaveLocalOffer,
-    kHaveLocalPrAnswer,
-    kHaveRemoteOffer,
-    kHaveRemotePrAnswer,
-    kClosed,
+    kStable = WEBRTC_PEER_CONNECTION_INTERFACE_SIGNALING_STATE_STABLE,
+    kHaveLocalOffer =
+        WEBRTC_PEER_CONNECTION_INTERFACE_SIGNALING_STATE_HAVE_LOCAL_OFFER,
+    kHaveLocalPrAnswer =
+        WEBRTC_PEER_CONNECTION_INTERFACE_SIGNALING_STATE_HAVE_LOCAL_PR_ANSWER,
+    kHaveRemoteOffer =
+        WEBRTC_PEER_CONNECTION_INTERFACE_SIGNALING_STATE_HAVE_REMOTE_OFFER,
+    kHaveRemotePrAnswer =
+        WEBRTC_PEER_CONNECTION_INTERFACE_SIGNALING_STATE_HAVE_REMOTE_PR_ANSWER,
+    kClosed = WEBRTC_PEER_CONNECTION_INTERFACE_SIGNALING_STATE_CLOSED,
   };
 
   // See https://w3c.github.io/webrtc-pc/#dom-rtcicegatheringstate
   enum IceGatheringState {
-    kIceGatheringNew,
-    kIceGatheringGathering,
-    kIceGatheringComplete
+    kIceGatheringNew = WEBRTC_PEER_CONNECTION_INTERFACE_ICE_GATHERING_STATE_NEW,
+    kIceGatheringGathering =
+        WEBRTC_PEER_CONNECTION_INTERFACE_ICE_GATHERING_STATE_GATHERING,
+    kIceGatheringComplete =
+        WEBRTC_PEER_CONNECTION_INTERFACE_ICE_GATHERING_STATE_COMPLETE
   };
 
   // See https://w3c.github.io/webrtc-pc/#dom-rtcpeerconnectionstate
   enum class PeerConnectionState {
-    kNew,
-    kConnecting,
-    kConnected,
-    kDisconnected,
-    kFailed,
-    kClosed,
+    kNew = WEBRTC_PEER_CONNECTION_INTERFACE_PEER_CONNECTION_STATE_NEW,
+    kConnecting =
+        WEBRTC_PEER_CONNECTION_INTERFACE_PEER_CONNECTION_STATE_CONNECTING,
+    kConnected =
+        WEBRTC_PEER_CONNECTION_INTERFACE_PEER_CONNECTION_STATE_CONNECTED,
+    kDisconnected =
+        WEBRTC_PEER_CONNECTION_INTERFACE_PEER_CONNECTION_STATE_DISCONNECTED,
+    kFailed = WEBRTC_PEER_CONNECTION_INTERFACE_PEER_CONNECTION_STATE_FAILED,
+    kClosed = WEBRTC_PEER_CONNECTION_INTERFACE_PEER_CONNECTION_STATE_CLOSED,
   };
 
   // See https://w3c.github.io/webrtc-pc/#dom-rtciceconnectionstate
   enum IceConnectionState {
-    kIceConnectionNew,
-    kIceConnectionChecking,
-    kIceConnectionConnected,
-    kIceConnectionCompleted,
-    kIceConnectionFailed,
-    kIceConnectionDisconnected,
-    kIceConnectionClosed,
-    kIceConnectionMax,
+    kIceConnectionNew =
+        WEBRTC_PEER_CONNECTION_INTERFACE_ICE_CONNECTION_STATE_NEW,
+    kIceConnectionChecking =
+        WEBRTC_PEER_CONNECTION_INTERFACE_ICE_CONNECTION_STATE_CHECKING,
+    kIceConnectionConnected =
+        WEBRTC_PEER_CONNECTION_INTERFACE_ICE_CONNECTION_STATE_CONNECTED,
+    kIceConnectionCompleted =
+        WEBRTC_PEER_CONNECTION_INTERFACE_ICE_CONNECTION_STATE_COMPLETED,
+    kIceConnectionFailed =
+        WEBRTC_PEER_CONNECTION_INTERFACE_ICE_CONNECTION_STATE_FAILED,
+    kIceConnectionDisconnected =
+        WEBRTC_PEER_CONNECTION_INTERFACE_ICE_CONNECTION_STATE_DISCONNECTED,
+    kIceConnectionClosed =
+        WEBRTC_PEER_CONNECTION_INTERFACE_ICE_CONNECTION_STATE_CLOSED,
+    kIceConnectionMax =
+        WEBRTC_PEER_CONNECTION_INTERFACE_ICE_CONNECTION_STATE_MAX,
   };
 
   // TLS certificate policy.
   enum TlsCertPolicy {
     // For TLS based protocols, ensure the connection is secure by not
     // circumventing certificate validation.
-    kTlsCertPolicySecure,
+    kTlsCertPolicySecure =
+        WEBRTC_PEER_CONNECTION_INTERFACE_TLS_CERT_POLICY_SECURE,
     // For TLS based protocols, disregard security completely by skipping
     // certificate validation. This is insecure and should never be used unless
     // security is irrelevant in that particular context.
-    kTlsCertPolicyInsecureNoCheck,
+    kTlsCertPolicyInsecureNoCheck =
+        WEBRTC_PEER_CONNECTION_INTERFACE_TLS_CERT_POLICY_INSECURE_NO_CHECK,
   };
 
   struct IceServer {
@@ -242,23 +266,28 @@ class RTC_EXPORT PeerConnectionInterface : public rtc::RefCountInterface {
   enum IceTransportsType {
     // TODO(pthatcher): Rename these kTransporTypeXXX, but update
     // Chromium at the same time.
-    kNone,
-    kRelay,
-    kNoHost,
-    kAll
+    kNone = WEBRTC_PEER_CONNECTION_INTERFACE_ICE_TRANSPORTS_TYPE_NONE,
+    kRelay = WEBRTC_PEER_CONNECTION_INTERFACE_ICE_TRANSPORTS_TYPE_RELAY,
+    kNoHost = WEBRTC_PEER_CONNECTION_INTERFACE_ICE_TRANSPORTS_TYPE_NO_HOST,
+    kAll = WEBRTC_PEER_CONNECTION_INTERFACE_ICE_TRANSPORTS_TYPE_ALL
   };
 
   // https://tools.ietf.org/html/draft-ietf-rtcweb-jsep-24#section-4.1.1
   enum BundlePolicy {
-    kBundlePolicyBalanced,
-    kBundlePolicyMaxBundle,
-    kBundlePolicyMaxCompat
+    kBundlePolicyBalanced =
+        WEBRTC_PEER_CONNECTION_INTERFACE_BUNDLE_POLICY_BALANCED,
+    kBundlePolicyMaxBundle =
+        WEBRTC_PEER_CONNECTION_INTERFACE_BUNDLE_POLICY_MAX_BUNDLE,
+    kBundlePolicyMaxCompat =
+        WEBRTC_PEER_CONNECTION_INTERFACE_BUNDLE_POLICY_MAX_COMPAT
   };
 
   // https://tools.ietf.org/html/draft-ietf-rtcweb-jsep-24#section-4.1.1
   enum RtcpMuxPolicy {
-    kRtcpMuxPolicyNegotiate,
-    kRtcpMuxPolicyRequire,
+    kRtcpMuxPolicyNegotiate =
+        WEBRTC_PEER_CONNECTION_INTERFACE_RTCP_MUX_POLICY_NEGOTIATE,
+    kRtcpMuxPolicyRequire =
+        WEBRTC_PEER_CONNECTION_INTERFACE_RTCP_MUX_POLICY_REQUIRE,
   };
 
   enum TcpCandidatePolicy {
@@ -649,58 +678,8 @@ class RTC_EXPORT PeerConnectionInterface : public rtc::RefCountInterface {
     //
   };
 
-  // See: https://www.w3.org/TR/webrtc/#idl-def-rtcofferansweroptions
-  struct RTCOfferAnswerOptions {
-    static const int kUndefined = -1;
-    static const int kMaxOfferToReceiveMedia = 1;
-
-    // The default value for constraint offerToReceiveX:true.
-    static const int kOfferToReceiveMediaTrue = 1;
-
-    // These options are left as backwards compatibility for clients who need
-    // "Plan B" semantics. Clients who have switched to "Unified Plan" semantics
-    // should use the RtpTransceiver API (AddTransceiver) instead.
-    //
-    // offer_to_receive_X set to 1 will cause a media description to be
-    // generated in the offer, even if no tracks of that type have been added.
-    // Values greater than 1 are treated the same.
-    //
-    // If set to 0, the generated directional attribute will not include the
-    // "recv" direction (meaning it will be "sendonly" or "inactive".
-    int offer_to_receive_video = kUndefined;
-    int offer_to_receive_audio = kUndefined;
-
-    bool voice_activity_detection = true;
-    bool ice_restart = false;
-
-    // If true, will offer to BUNDLE audio/video/data together. Not to be
-    // confused with RTCP mux (multiplexing RTP and RTCP together).
-    bool use_rtp_mux = true;
-
-    // If true, "a=packetization:<payload_type> raw" attribute will be offered
-    // in the SDP for all video payload and accepted in the answer if offered.
-    bool raw_packetization_for_video = false;
-
-    // This will apply to all video tracks with a Plan B SDP offer/answer.
-    int num_simulcast_layers = 1;
-
-    // If true: Use SDP format from draft-ietf-mmusic-scdp-sdp-03
-    // If false: Use SDP format from draft-ietf-mmusic-sdp-sdp-26 or later
-    bool use_obsolete_sctp_sdp = false;
-
-    RTCOfferAnswerOptions() = default;
-
-    RTCOfferAnswerOptions(int offer_to_receive_video,
-                          int offer_to_receive_audio,
-                          bool voice_activity_detection,
-                          bool ice_restart,
-                          bool use_rtp_mux)
-        : offer_to_receive_video(offer_to_receive_video),
-          offer_to_receive_audio(offer_to_receive_audio),
-          voice_activity_detection(voice_activity_detection),
-          ice_restart(ice_restart),
-          use_rtp_mux(use_rtp_mux) {}
-  };
+  typedef WebrtcPeerConnectionInterfaceRTCOfferAnswerOptions
+      RTCOfferAnswerOptions;
 
   // Used by GetStats to decide which stats to include in the stats reports.
   // |kStatsOutputLevelStandard| includes the standard stats for Javascript API;

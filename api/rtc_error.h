@@ -8,6 +8,8 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+#include "sdk/c/api/rtc_error.h"
+
 #ifndef API_RTC_ERROR_H_
 #define API_RTC_ERROR_H_
 
@@ -30,50 +32,50 @@ namespace webrtc {
 // comments below.
 enum class RTCErrorType {
   // No error.
-  NONE,
+  NONE = WEBRTC_RTC_ERROR_TYPE_NONE,
 
   // An operation is valid, but currently unsupported.
   // Maps to OperationError DOMException.
-  UNSUPPORTED_OPERATION,
+  UNSUPPORTED_OPERATION = WEBRTC_RTC_ERROR_TYPE_UNSUPPORTED_OPERATION,
 
   // A supplied parameter is valid, but currently unsupported.
   // Maps to OperationError DOMException.
-  UNSUPPORTED_PARAMETER,
+  UNSUPPORTED_PARAMETER = WEBRTC_RTC_ERROR_TYPE_UNSUPPORTED_PARAMETER,
 
   // General error indicating that a supplied parameter is invalid.
   // Maps to InvalidAccessError or TypeError DOMException depending on context.
-  INVALID_PARAMETER,
+  INVALID_PARAMETER = WEBRTC_RTC_ERROR_TYPE_INVALID_PARAMETER,
 
   // Slightly more specific than INVALID_PARAMETER; a parameter's value was
   // outside the allowed range.
   // Maps to RangeError DOMException.
-  INVALID_RANGE,
+  INVALID_RANGE = WEBRTC_RTC_ERROR_TYPE_INVALID_RANGE,
 
   // Slightly more specific than INVALID_PARAMETER; an error occurred while
   // parsing string input.
   // Maps to SyntaxError DOMException.
-  SYNTAX_ERROR,
+  SYNTAX_ERROR = WEBRTC_RTC_ERROR_TYPE_SYNTAX_ERROR,
 
   // The object does not support this operation in its current state.
   // Maps to InvalidStateError DOMException.
-  INVALID_STATE,
+  INVALID_STATE = WEBRTC_RTC_ERROR_TYPE_INVALID_STATE,
 
   // An attempt was made to modify the object in an invalid way.
   // Maps to InvalidModificationError DOMException.
-  INVALID_MODIFICATION,
+  INVALID_MODIFICATION = WEBRTC_RTC_ERROR_TYPE_INVALID_MODIFICATION,
 
   // An error occurred within an underlying network protocol.
   // Maps to NetworkError DOMException.
-  NETWORK_ERROR,
+  NETWORK_ERROR = WEBRTC_RTC_ERROR_TYPE_NETWORK_ERROR,
 
   // Some resource has been exhausted; file handles, hardware resources, ports,
   // etc.
   // Maps to OperationError DOMException.
-  RESOURCE_EXHAUSTED,
+  RESOURCE_EXHAUSTED = WEBRTC_RTC_ERROR_TYPE_RESOURCE_EXHAUSTED,
 
   // The operation failed due to an internal error.
   // Maps to OperationError DOMException.
-  INTERNAL_ERROR,
+  INTERNAL_ERROR = WEBRTC_RTC_ERROR_TYPE_INTERNAL_ERROR,
 };
 
 // Roughly corresponds to RTCError in the web api. Holds an error type, a
