@@ -251,42 +251,43 @@ bool OpenSLESRecorder::CreateAudioRecorder() {
   const SLInterfaceID interface_id[] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
                                         SL_IID_ANDROIDCONFIGURATION};
   const SLboolean interface_required[] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
+  SLAndroidConfigurationItf recorder_config;
+  SLint32 stream_type = SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION;
+
   if (LOG_ON_ERROR((*engine_)->CreateAudioRecorder(
           engine_, recorder_object_.Receive(), &audio_source, &audio_sink,
           arraysize(interface_id), interface_id, interface_required))) {
-    return false;
+    goto fail;
   }
 
   // Configure the audio recorder (before it is realized).
-  SLAndroidConfigurationItf recorder_config;
   if (LOG_ON_ERROR((recorder_object_->GetInterface(recorder_object_.Get(),
                                                    SL_IID_ANDROIDCONFIGURATION,
                                                    &recorder_config)))) {
-    return false;
+    goto fail_recorder_object;
   }
 
   // Uses the default microphone tuned for audio communication.
   // Note that, SL_ANDROID_RECORDING_PRESET_VOICE_RECOGNITION leads to a fast
   // track but also excludes usage of required effects like AEC, AGC and NS.
   // SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION
-  SLint32 stream_type = SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION;
   if (LOG_ON_ERROR(((*recorder_config)
                         ->SetConfiguration(recorder_config,
                                            SL_ANDROID_KEY_RECORDING_PRESET,
                                            &stream_type, sizeof(SLint32))))) {
-    return false;
+    goto fail_recorder_object;
   }
 
   // The audio recorder can now be realized (in synchronous mode).
   if (LOG_ON_ERROR((recorder_object_->Realize(recorder_object_.Get(),
                                               SL_BOOLEAN_FALSE)))) {
-    return false;
+    goto fail_recorder_object;
   }
 
   // Get the implicit recorder interface (SL_IID_RECORD).
   if (LOG_ON_ERROR((recorder_object_->GetInterface(
           recorder_object_.Get(), SL_IID_RECORD, &recorder_)))) {
-    return false;
+    goto fail_recorder_object;
   }
 
   // Get the simple buffer queue interface (SL_IID_ANDROIDSIMPLEBUFFERQUEUE).
@@ -294,7 +295,7 @@ bool OpenSLESRecorder::CreateAudioRecorder() {
   if (LOG_ON_ERROR((recorder_object_->GetInterface(
           recorder_object_.Get(), SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
           &simple_buffer_queue_)))) {
-    return false;
+    goto fail_recorder;
   }
 
   // Register the input callback for the simple buffer queue.
@@ -302,9 +303,21 @@ bool OpenSLESRecorder::CreateAudioRecorder() {
   if (LOG_ON_ERROR(((*simple_buffer_queue_)
                         ->RegisterCallback(simple_buffer_queue_,
                                            SimpleBufferQueueCallback, this)))) {
-    return false;
+    goto fail_simple_buffer_queue;
   }
   return true;
+
+fail_simple_buffer_queue:
+  simple_buffer_queue_ = nullptr;
+
+fail_recorder:
+  recorder_ = nullptr;
+
+fail_recorder_object:
+  recorder_object_.Reset();
+
+fail:
+  return false;
 }
 
 void OpenSLESRecorder::DestroyAudioRecorder() {
