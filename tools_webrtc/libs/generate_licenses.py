@@ -66,6 +66,7 @@ LIB_TO_LICENSES_DICT = {
     'g722': ['modules/third_party/g722/LICENSE'],
     'fft4g': ['common_audio/third_party/fft4g/LICENSE'],
     'spl_sqrt_floor': ['common_audio/third_party/spl_sqrt_floor/LICENSE'],
+    'webrtc (additions made by pixiv Inc.)': ['LICENSE.pixiv'],
 
     # Compile time dependencies, no license needed:
     'yasm': [],
@@ -198,6 +199,7 @@ class LicenseBuilder(object):
 
     # Put webrtc at the front of the list.
     license_libs = sorted(third_party_libs)
+    license_libs.insert(0, 'webrtc (additions made by pixiv Inc.)')
     license_libs.insert(0, 'webrtc')
 
     logging.info('List of licenses: %s', ', '.join(license_libs))
