@@ -21,6 +21,10 @@
 #include "rtc_base/checks.h"
 #include "rtc_base/critical_section.h"
 
+#if defined(WEBRTC_IOS)
+#include <CoreMedia/CoreMedia.h>
+#endif
+
 namespace webrtc {
 
 class AudioDeviceGeneric;
@@ -128,6 +132,7 @@ class AudioDeviceModuleIOS : public AudioDeviceModule {
   int32_t GetPlayoutUnderrunCount() const override;
 
 #if defined(WEBRTC_IOS)
+  void OnDeliverRecordedExternalData(CMSampleBufferRef sample_buffer);
   int GetPlayoutAudioParameters(AudioParameters* params) const override;
   int GetRecordAudioParameters(AudioParameters* params) const override;
 #endif  // WEBRTC_IOS

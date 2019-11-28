@@ -9,6 +9,7 @@
  */
 
 #import <AVFoundation/AVFoundation.h>
+#import <CoreMedia/CoreMedia.h>
 #import <Foundation/Foundation.h>
 
 #include "audio_device_ios.h"
@@ -16,6 +17,7 @@
 #include <cmath>
 
 #include "api/array_view.h"
+#include "common_audio/signal_processing/include/signal_processing_library.h"
 #include "helpers.h"
 #include "modules/audio_device/fine_audio_buffer.h"
 #include "rtc_base/atomic_ops.h"
@@ -228,7 +230,10 @@ int32_t AudioDeviceIOS::StartPlayout() {
   RTC_DCHECK_RUN_ON(&thread_checker_);
   RTC_DCHECK(audio_is_initialized_);
   RTC_DCHECK(!playing_);
-  RTC_DCHECK(audio_unit_);
+  if (!audio_unit_) {
+    RTCLogError(@"StartPlayout failed because audio is disabled.");
+    return -1;
+  }
   if (fine_audio_buffer_) {
     fine_audio_buffer_->ResetPlayout();
   }
@@ -281,11 +286,10 @@ int32_t AudioDeviceIOS::StartRecording() {
   RTC_DCHECK_RUN_ON(&thread_checker_);
   RTC_DCHECK(audio_is_initialized_);
   RTC_DCHECK(!recording_);
-  RTC_DCHECK(audio_unit_);
   if (fine_audio_buffer_) {
     fine_audio_buffer_->ResetRecord();
   }
-  if (!playing_ && audio_unit_->GetState() == VoiceProcessingAudioUnit::kInitialized) {
+  if (!playing_ && audio_unit_ && audio_unit_->GetState() == VoiceProcessingAudioUnit::kInitialized) {
     if (!audio_unit_->Start()) {
       RTCLogError(@"StartRecording failed to start audio unit.");
       return -1;
@@ -303,7 +307,9 @@ int32_t AudioDeviceIOS::StopRecording() {
     return 0;
   }
   if (!playing_) {
-    ShutdownPlayOrRecord();
+    if (audio_unit_) {
+      ShutdownPlayOrRecord();
+    }
     audio_is_initialized_ = false;
   }
   rtc::AtomicOps::ReleaseStore(&recording_, 0);
@@ -363,6 +369,64 @@ void AudioDeviceIOS::OnCanPlayOrRecordChange(bool can_play_or_record) {
 void AudioDeviceIOS::OnChangedOutputVolume() {
   RTC_DCHECK(thread_);
   thread_->Post(RTC_FROM_HERE, this, kMessageOutputVolumeChange);
+}
+
+void AudioDeviceIOS::OnDeliverRecordedExternalData(CMSampleBufferRef sample_buffer) {
+  RTC_DCHECK_RUN_ON(&io_thread_checker_);
+
+  if (audio_unit_) {
+    RTCLogError(@"External recorded data was provided while audio unit is disabled.");
+    return;
+  }
+
+  CMFormatDescriptionRef description = CMSampleBufferGetFormatDescription(sample_buffer);
+  const AudioStreamBasicDescription *asbd = CMAudioFormatDescriptionGetStreamBasicDescription(description);
+  if (!asbd) {
+    RTCLogError("External recorded data was not in audio format.");
+    return;
+  }
+
+  if (asbd->mSampleRate != record_parameters_.sample_rate() ||
+      asbd->mChannelsPerFrame != record_parameters_.channels()) {
+    record_parameters_.reset(asbd->mSampleRate, asbd->mChannelsPerFrame);
+    UpdateAudioDeviceBuffer();
+
+    // Create a modified audio buffer class which allows us to ask for,
+    // or deliver, any number of samples (and not only multiple of 10ms) to match
+    // the native audio unit buffer size.
+    RTC_DCHECK(audio_device_buffer_);
+    fine_audio_buffer_.reset(new FineAudioBuffer(audio_device_buffer_));
+  }
+
+  CMBlockBufferRef block_buffer = CMSampleBufferGetDataBuffer(sample_buffer);
+  if (block_buffer == nil) {
+    return;
+  }
+
+  AudioBufferList buffer_list;
+  CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sample_buffer,
+                                                          nullptr,
+                                                          &buffer_list,
+                                                          sizeof(buffer_list),
+                                                          nullptr,
+                                                          nullptr,
+                                                          kCMSampleBufferFlag_AudioBufferList_Assure16ByteAlignment,
+                                                          &block_buffer);
+
+  rtc::ArrayView<int16_t> view {
+    static_cast<int16_t*>(buffer_list.mBuffers[0].mData),
+    buffer_list.mBuffers[0].mDataByteSize / sizeof(int16_t)
+  };
+
+  if (asbd->mFormatFlags & kAudioFormatFlagIsBigEndian) {
+    for (auto& element : view) {
+      element = be16toh(element);
+    }
+  }
+
+  fine_audio_buffer_->DeliverRecordedData(view, kFixedRecordDelayEstimate);
+
+  CFRelease(block_buffer);
 }
 
 OSStatus AudioDeviceIOS::OnDeliverRecordedData(AudioUnitRenderActionFlags* flags,
@@ -753,8 +817,10 @@ void AudioDeviceIOS::UpdateAudioUnit(bool can_play_or_record) {
   // be initialized on initialization.
   if (!audio_is_initialized_) return;
 
-  // If we're initialized, we must have an audio unit.
-  RTC_DCHECK(audio_unit_);
+  if (!audio_unit_ && !CreateAudioUnit()) {
+    RTCLog(@"Failed to create audio unit.");
+    return;
+  }
 
   bool should_initialize_audio_unit = false;
   bool should_uninitialize_audio_unit = false;
@@ -860,11 +926,6 @@ bool AudioDeviceIOS::InitPlayOrRecord() {
   LOGI() << "InitPlayOrRecord";
   RTC_DCHECK_RUN_ON(&thread_checker_);
 
-  // There should be no audio unit at this point.
-  if (!CreateAudioUnit()) {
-    return false;
-  }
-
   RTCAudioSession* session = [RTCAudioSession sharedInstance];
   // Subscribe to audio session events.
   [session pushDelegate:audio_session_observer_];
@@ -883,6 +944,12 @@ bool AudioDeviceIOS::InitPlayOrRecord() {
   // If we are ready to play or record, and if the audio session can be
   // configured, then initialize the audio unit.
   if (session.canPlayOrRecord) {
+    // There should be no audio unit at this point.
+    if (!CreateAudioUnit()) {
+      [session unlockForConfiguration];
+      return false;
+    }
+
     if (!ConfigureAudioSession()) {
       // One possible reason for failure is if an attempt was made to use the
       // audio session during or after a Media Services failure.

@@ -11,6 +11,58 @@ This is a fork of WebRTC made by [pixiv Inc](https://www.pixiv.co.jp/).
 - Native APIs are availble for Android library.
 - `webrtc::VideoBuffer`, a simple `webrtc::VideoSinkInterface` which allows you
   to retrieve the last frame at an arbitrary time is introduced.
+- APIs necessary to deliver recorded audio data on iOS's broadcast extension is
+  added.
+
+# Delivering audio data on iOS's broadcast extension
+
+## The problem and solution
+
+A broadcast extension allows to broadcast your screen from iOS. However, an
+extension is an environment restricted compared to normal applications, and
+lacks the Audio Unit framework, which is required by the audio device module
+for iOS of WebRTC.
+
+A broadcast extension can still receive sounds of applications and one recorded
+with microphone via [`RPBroadcastSampleHandler`](https://developer.apple.com/documentation/replaykit/rpbroadcastsamplehandler)
+object. This fork fixes the audio device module on environments without the
+Audio Unit framework and adds interfaces to deliver data received via
+[`RPBroadcastSampleHandler`](https://developer.apple.com/documentation/replaykit/rpbroadcastsamplehandler).
+
+## Relevant interfaces
+
+Use interfaces described here to deliver audio with your broadcast extension.
+
+### `[RTCPeerConnectionFactory initWithEncoderFactory: decoderFactory: audioDeviceModule:]`
+
+This method is same to `[RTCPeerConnectionFactory initWithEncoderFactory: decoderFactory:]`,
+but has one more parameter, `audioDeviceModule`, whose type is `RTCAudioDeviceModule`.
+
+Use this method to provide `RTCAudioDeviceModule` delivering audio data.
+
+### `RTCAudioDeviceModule`
+
+This class is defined in `RTCAudioDeviceModule.h`. It wraps the native
+implementation delivering audio data. The implementation is extended to
+receive data not from the Audio Unit framework.
+
+### `[RTCAudioDeviceModule deliverRecordedData:]`
+
+This method actually delivers the data your provide. The type of the parameter
+is [`CMSampleBuffer`](https://developer.apple.com/documentation/coremedia/cmsamplebuffer-u71).
+
+Provide [`CMSampleBuffer`](https://developer.apple.com/documentation/coremedia/cmsamplebuffer-u71)
+acquired with [`[RPBroadcastSampleHandler processSampleBuffer: with:]`](https://developer.apple.com/documentation/replaykit/rpbroadcastsamplehandler/2123045-processsamplebuffer).
+
+The audio unit must be uninitialized and disabled to use this method.
+
+### `RTCAudioSession.useManualAudio`
+
+Set `YES` on broadcast extension. That prevents initializing the audio unit.
+
+### `RTCAudioSession.isAudioEnabled`
+
+Set `NO` on broadcast extension. That disables the audio unit.
 
 # .NET bindings
 

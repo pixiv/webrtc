@@ -11,6 +11,7 @@
 #import <Foundation/Foundation.h>
 
 #import "RTCMacros.h"
+#import "RTCAudioDeviceModule.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -36,6 +37,10 @@ RTC_OBJC_EXPORT
 /* Initialize object with injectable video encoder/decoder factories */
 - (instancetype)initWithEncoderFactory:(nullable id<RTCVideoEncoderFactory>)encoderFactory
                         decoderFactory:(nullable id<RTCVideoDecoderFactory>)decoderFactory;
+
+- (instancetype)initWithEncoderFactory:(nullable id<RTCVideoEncoderFactory>)encoderFactory
+                        decoderFactory:(nullable id<RTCVideoDecoderFactory>)decoderFactory
+                     audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule;
 
 /** Initialize an RTCAudioSource with constraints. */
 - (RTCAudioSource *)audioSourceWithConstraints:(nullable RTCMediaConstraints *)constraints;

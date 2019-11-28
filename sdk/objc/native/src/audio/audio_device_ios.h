@@ -11,6 +11,7 @@
 #ifndef SDK_OBJC_NATIVE_SRC_AUDIO_AUDIO_DEVICE_IOS_H_
 #define SDK_OBJC_NATIVE_SRC_AUDIO_AUDIO_DEVICE_IOS_H_
 
+#include <CoreMedia/CoreMedia.h>
 #include <memory>
 
 #include "audio_session_observer.h"
@@ -141,6 +142,8 @@ class AudioDeviceIOS : public AudioDeviceGeneric,
   void OnValidRouteChange() override;
   void OnCanPlayOrRecordChange(bool can_play_or_record) override;
   void OnChangedOutputVolume() override;
+
+  void OnDeliverRecordedExternalData(CMSampleBufferRef sample_buffer);
 
   // VoiceProcessingAudioUnitObserver methods.
   OSStatus OnDeliverRecordedData(AudioUnitRenderActionFlags* flags,
