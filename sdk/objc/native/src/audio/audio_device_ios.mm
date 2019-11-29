@@ -149,18 +149,6 @@ AudioDeviceGeneric::InitStatus AudioDeviceIOS::Init() {
 #if !defined(NDEBUG)
   LogDeviceInfo();
 #endif
-  // Store the preferred sample rate and preferred number of channels already
-  // here. They have not been set and confirmed yet since configureForWebRTC
-  // is not called until audio is about to start. However, it makes sense to
-  // store the parameters now and then verify at a later stage.
-  RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
-  playout_parameters_.reset(config.sampleRate, config.outputNumberOfChannels);
-  record_parameters_.reset(config.sampleRate, config.inputNumberOfChannels);
-  // Ensure that the audio device buffer (ADB) knows about the internal audio
-  // parameters. Note that, even if we are unable to get a mono audio session,
-  // we will always tell the I/O audio unit to do a channel format conversion
-  // to guarantee mono on the "input side" of the audio unit.
-  UpdateAudioDeviceBuffer();
   initialized_ = true;
   return InitStatus::OK;
 }
@@ -727,15 +715,17 @@ void AudioDeviceIOS::UpdateAudioDeviceBuffer() {
   // AttachAudioBuffer() is called at construction by the main class but check
   // just in case.
   RTC_DCHECK(audio_device_buffer_) << "AttachAudioBuffer must be called first";
-  RTC_DCHECK_GT(playout_parameters_.sample_rate(), 0);
-  RTC_DCHECK_GT(record_parameters_.sample_rate(), 0);
-  RTC_DCHECK_EQ(playout_parameters_.channels(), 1);
-  RTC_DCHECK_EQ(record_parameters_.channels(), 1);
   // Inform the audio device buffer (ADB) about the new audio format.
-  audio_device_buffer_->SetPlayoutSampleRate(playout_parameters_.sample_rate());
-  audio_device_buffer_->SetPlayoutChannels(playout_parameters_.channels());
-  audio_device_buffer_->SetRecordingSampleRate(record_parameters_.sample_rate());
-  audio_device_buffer_->SetRecordingChannels(record_parameters_.channels());
+  if (playout_parameters_.is_valid()) {
+    RTC_DCHECK_EQ(playout_parameters_.channels(), 1);
+    audio_device_buffer_->SetPlayoutSampleRate(playout_parameters_.sample_rate());
+    audio_device_buffer_->SetPlayoutChannels(playout_parameters_.channels());
+  }
+  if (record_parameters_.is_valid()) {
+    RTC_DCHECK_EQ(record_parameters_.channels(), 1);
+    audio_device_buffer_->SetRecordingSampleRate(record_parameters_.sample_rate());
+    audio_device_buffer_->SetRecordingChannels(record_parameters_.channels());
+  }
 }
 
 void AudioDeviceIOS::SetupAudioBuffersForActiveAudioSession() {
@@ -771,9 +761,9 @@ void AudioDeviceIOS::SetupAudioBuffersForActiveAudioSession() {
   // number of audio frames.
   // Example: IO buffer size = 0.008 seconds <=> 128 audio frames at 16kHz.
   // Hence, 128 is the size we expect to see in upcoming render callbacks.
-  playout_parameters_.reset(sample_rate, playout_parameters_.channels(), io_buffer_duration);
+  playout_parameters_.reset(sample_rate, webRTCConfig.outputNumberOfChannels, io_buffer_duration);
   RTC_DCHECK(playout_parameters_.is_complete());
-  record_parameters_.reset(sample_rate, record_parameters_.channels(), io_buffer_duration);
+  record_parameters_.reset(sample_rate, webRTCConfig.inputNumberOfChannels, io_buffer_duration);
   RTC_DCHECK(record_parameters_.is_complete());
   RTC_LOG(LS_INFO) << " frames per I/O buffer: " << playout_parameters_.frames_per_buffer();
   RTC_LOG(LS_INFO) << " bytes per I/O buffer: " << playout_parameters_.GetBytesPerBuffer();
@@ -943,6 +933,19 @@ bool AudioDeviceIOS::InitPlayOrRecord() {
   // If we are ready to play or record, and if the audio session can be
   // configured, then initialize the audio unit.
   if (session.canPlayOrRecord) {
+    // Store the preferred sample rate and preferred number of channels already
+    // here. They have not been set and confirmed yet since configureForWebRTC
+    // is not called until audio is about to start. However, it makes sense to
+    // store the parameters now and then verify at a later stage.
+    RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
+    playout_parameters_.reset(config.sampleRate, config.outputNumberOfChannels);
+    record_parameters_.reset(config.sampleRate, config.inputNumberOfChannels);
+    // Ensure that the audio device buffer (ADB) knows about the internal audio
+    // parameters. Note that, even if we are unable to get a mono audio session,
+    // we will always tell the I/O audio unit to do a channel format conversion
+    // to guarantee mono on the "input side" of the audio unit.
+    UpdateAudioDeviceBuffer();
+
     // There should be no audio unit at this point.
     if (!CreateAudioUnit()) {
       [session unlockForConfiguration];
