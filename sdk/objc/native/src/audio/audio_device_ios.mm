@@ -816,7 +816,7 @@ void AudioDeviceIOS::UpdateAudioUnit(bool can_play_or_record) {
   // be initialized on initialization.
   if (!audio_is_initialized_) return;
 
-  if (!audio_unit_ && !CreateAudioUnit()) {
+  if (can_play_or_record && !audio_unit_ && !CreateAudioUnit()) {
     RTCLog(@"Failed to create audio unit.");
     return;
   }
