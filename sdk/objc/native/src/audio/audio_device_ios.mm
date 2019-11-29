@@ -373,7 +373,7 @@ void AudioDeviceIOS::OnChangedOutputVolume() {
 void AudioDeviceIOS::OnDeliverRecordedExternalData(CMSampleBufferRef sample_buffer) {
   RTC_DCHECK_RUN_ON(&io_thread_checker_);
 
-  if (audio_unit_) {
+  if (audio_unit_ && audio_unit_->GetState() != VoiceProcessingAudioUnit::kUninitialized) {
     RTCLogError(@"External recorded data was provided while audio unit is enabled.");
     return;
   }
