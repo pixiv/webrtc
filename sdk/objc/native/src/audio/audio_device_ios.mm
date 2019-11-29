@@ -381,7 +381,7 @@ void AudioDeviceIOS::OnDeliverRecordedExternalData(CMSampleBufferRef sample_buff
   CMFormatDescriptionRef description = CMSampleBufferGetFormatDescription(sample_buffer);
   const AudioStreamBasicDescription *asbd = CMAudioFormatDescriptionGetStreamBasicDescription(description);
   if (!asbd) {
-    RTCLogError("External recorded data was not in audio format.");
+    RTCLogError(@"External recorded data was not in audio format.");
     return;
   }
 
