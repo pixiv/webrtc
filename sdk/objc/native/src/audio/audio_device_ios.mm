@@ -17,7 +17,6 @@
 #include <cmath>
 
 #include "api/array_view.h"
-#include "common_audio/signal_processing/include/signal_processing_library.h"
 #include "helpers.h"
 #include "modules/audio_device/fine_audio_buffer.h"
 #include "rtc_base/atomic_ops.h"
