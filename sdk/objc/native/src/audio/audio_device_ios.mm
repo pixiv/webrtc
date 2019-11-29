@@ -375,7 +375,7 @@ void AudioDeviceIOS::OnDeliverRecordedExternalData(CMSampleBufferRef sample_buff
   RTC_DCHECK_RUN_ON(&io_thread_checker_);
 
   if (audio_unit_) {
-    RTCLogError(@"External recorded data was provided while audio unit is disabled.");
+    RTCLogError(@"External recorded data was provided while audio unit is enabled.");
     return;
   }
 
