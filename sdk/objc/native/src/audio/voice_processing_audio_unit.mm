@@ -122,6 +122,7 @@ bool VoiceProcessingAudioUnit::Init() {
     return false;
   }
 
+/*
   // Enable output on the output scope of the output element.
   UInt32 enable_output = 1;
   result = AudioUnitSetProperty(vpio_unit_, kAudioOutputUnitProperty_EnableIO,
@@ -134,6 +135,7 @@ bool VoiceProcessingAudioUnit::Init() {
                 (long)result);
     return false;
   }
+  */
 
   // Specify the callback function that provides audio samples to the audio
   // unit.
