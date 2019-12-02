@@ -18,6 +18,7 @@ NS_CLASS_AVAILABLE_IOS(2_0)
 @interface RTCAudioDeviceModule : NSObject
 
 - (void)deliverRecordedData:(CMSampleBufferRef)sampleBuffer;
+@property(nonatomic, assign) OSType audioUnitSubType;
 
 @end
 

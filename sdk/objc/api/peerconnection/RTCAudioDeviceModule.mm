@@ -24,6 +24,14 @@
   _nativeModule->OnDeliverRecordedExternalData(sampleBuffer);
 }
 
+- (void)setAudioUnitSubType:(OSType)audioUnitSubType {
+  _nativeModule->SetAudioUnitSubType(audioUnitSubType);
+}
+
+- (OSType)audioUnitSubType {
+  return _nativeModule->GetAudioUnitSubType();
+}
+
 #pragma mark - Private
 
 - (rtc::scoped_refptr<webrtc::ios_adm::AudioDeviceModuleIOS>)nativeModule {

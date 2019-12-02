@@ -69,7 +69,7 @@ class VoiceProcessingAudioUnit {
   // audio. The selected stream format is selected to avoid internal resampling
   // and to match the 10ms callback rate for WebRTC as well as possible.
   // Does not intialize the audio unit.
-  bool Init();
+  bool Init(OSType audio_unit_sub_type);
 
   VoiceProcessingAudioUnit::State GetState() const;
 
@@ -132,6 +132,7 @@ class VoiceProcessingAudioUnit {
   VoiceProcessingAudioUnitObserver* observer_;
   AudioUnit vpio_unit_;
   VoiceProcessingAudioUnit::State state_;
+  OSType audio_unit_sub_type_;
 };
 }  // namespace ios_adm
 }  // namespace webrtc
