@@ -208,8 +208,8 @@ class AudioDeviceIOS : public AudioDeviceGeneric,
   // created on.
   rtc::ThreadChecker thread_checker_;
 
-  // Native I/O audio thread checker.
-  rtc::ThreadChecker io_thread_checker_;
+  // Native audio I/O critical section.
+  rtc::CriticalSection io_lock_;
 
   // Thread that this object is created on.
   rtc::Thread* thread_;
@@ -282,7 +282,7 @@ class AudioDeviceIOS : public AudioDeviceGeneric,
 
   // Counts number of detected audio glitches on the playout side.
   int64_t num_detected_playout_glitches_ RTC_GUARDED_BY(thread_checker_);
-  int64_t last_playout_time_ RTC_GUARDED_BY(io_thread_checker_);
+  int64_t last_playout_time_ RTC_GUARDED_BY(io_lock_);
 
   // Counts number of playout callbacks per call.
   // The value isupdated on the native I/O thread and later read on the

@@ -54,6 +54,16 @@ is [`CMSampleBuffer`](https://developer.apple.com/documentation/coremedia/cmsamp
 Provide [`CMSampleBuffer`](https://developer.apple.com/documentation/coremedia/cmsamplebuffer-u71)
 acquired with [`[RPBroadcastSampleHandler processSampleBuffer: with:]`](https://developer.apple.com/documentation/replaykit/rpbroadcastsamplehandler/2123045-processsamplebuffer).
 
+You must keep calling this method once you added an audio stream. However,
+broadcast extension does not provide audio buffer with
+`RPSampleBufferType.audioMic` while the microphone is disabled. Therefore,
+you have to provide dummy samples before the microphone is enabled if you
+are broadcasting the audio recorded with the microphone.
+
+Note that `NSTimer` and `DispatchSourceTimer` cannot be used to implement
+such a mechanism, at least on iOS 12.2. `DispatchQueue.asyncAfter` is
+a nice alternative.
+
 The audio unit must be uninitialized and disabled to use this method.
 
 ### `RTCAudioSession.useManualAudio`

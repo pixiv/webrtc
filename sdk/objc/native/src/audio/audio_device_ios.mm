@@ -116,7 +116,6 @@ AudioDeviceIOS::AudioDeviceIOS()
       num_playout_callbacks_(0),
       last_output_volume_change_time_(0) {
   LOGI() << "ctor" << ios::GetCurrentThreadDescription();
-  io_thread_checker_.Detach();
   thread_checker_.Detach();
   thread_ = rtc::Thread::Current();
 
@@ -139,7 +138,6 @@ void AudioDeviceIOS::AttachAudioBuffer(AudioDeviceBuffer* audioBuffer) {
 
 AudioDeviceGeneric::InitStatus AudioDeviceIOS::Init() {
   LOGI() << "Init";
-  io_thread_checker_.Detach();
   thread_checker_.Detach();
 
   RTC_DCHECK_RUN_ON(&thread_checker_);
@@ -359,7 +357,7 @@ void AudioDeviceIOS::OnChangedOutputVolume() {
 }
 
 void AudioDeviceIOS::OnDeliverRecordedExternalData(CMSampleBufferRef sample_buffer) {
-  RTC_DCHECK_RUN_ON(&io_thread_checker_);
+  rtc::CritScope scoped_lock(&io_lock_);
 
   if (audio_unit_ && audio_unit_->GetState() != VoiceProcessingAudioUnit::kUninitialized) {
     RTCLogError(@"External recorded data was provided while audio unit is enabled.");
@@ -421,7 +419,7 @@ OSStatus AudioDeviceIOS::OnDeliverRecordedData(AudioUnitRenderActionFlags* flags
                                                UInt32 bus_number,
                                                UInt32 num_frames,
                                                AudioBufferList* /* io_data */) {
-  RTC_DCHECK_RUN_ON(&io_thread_checker_);
+  rtc::CritScope scoped_lock(&io_lock_);
   OSStatus result = noErr;
   // Simply return if recording is not enabled.
   if (!rtc::AtomicOps::AcquireLoad(&recording_)) return result;
@@ -469,7 +467,7 @@ OSStatus AudioDeviceIOS::OnGetPlayoutData(AudioUnitRenderActionFlags* flags,
                                           UInt32 bus_number,
                                           UInt32 num_frames,
                                           AudioBufferList* io_data) {
-  RTC_DCHECK_RUN_ON(&io_thread_checker_);
+  rtc::CritScope scoped_lock(&io_lock_);
   // Verify 16-bit, noninterleaved mono PCM signal format.
   RTC_DCHECK_EQ(1, io_data->mNumberBuffers);
   AudioBuffer* audio_buffer = &io_data->mBuffers[0];
@@ -979,10 +977,6 @@ void AudioDeviceIOS::ShutdownPlayOrRecord() {
   // Close and delete the voice-processing I/O unit.
   audio_unit_.reset();
 
-  // Detach thread checker for the AURemoteIO::IOThread to ensure that the
-  // next session uses a fresh thread id.
-  io_thread_checker_.Detach();
-
   // Remove audio session notification observers.
   RTCAudioSession* session = [RTCAudioSession sharedInstance];
   [session removeDelegate:audio_session_observer_];
@@ -994,11 +988,6 @@ void AudioDeviceIOS::ShutdownPlayOrRecord() {
 
 void AudioDeviceIOS::PrepareForNewStart() {
   LOGI() << "PrepareForNewStart";
-  // The audio unit has been stopped and preparations are needed for an upcoming
-  // restart. It will result in audio callbacks from a new native I/O thread
-  // which means that we must detach thread checkers here to be prepared for an
-  // upcoming new audio stream.
-  io_thread_checker_.Detach();
 }
 
 bool AudioDeviceIOS::IsInterrupted() {
