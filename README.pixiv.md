@@ -13,6 +13,8 @@ This is a fork of WebRTC made by [pixiv Inc](https://www.pixiv.co.jp/).
   to retrieve the last frame at an arbitrary time is introduced.
 - APIs necessary to deliver recorded audio data on iOS's broadcast extension is
   added.
+- An audio unit component other than the Voice-Processing I/O unit can be used
+  to record audio on iOS.
 
 # Delivering audio data on iOS's broadcast extension
 

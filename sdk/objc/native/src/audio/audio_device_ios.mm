@@ -781,7 +781,7 @@ bool AudioDeviceIOS::CreateAudioUnit() {
   RTC_DCHECK(!audio_unit_);
 
   audio_unit_.reset(new VoiceProcessingAudioUnit(this));
-  if (!audio_unit_->Init()) {
+  if (!audio_unit_->Init(audio_unit_sub_type)) {
     audio_unit_.reset();
     return false;
   }

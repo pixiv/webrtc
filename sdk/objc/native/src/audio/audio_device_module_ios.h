@@ -133,6 +133,8 @@ class AudioDeviceModuleIOS : public AudioDeviceModule {
 
 #if defined(WEBRTC_IOS)
   void OnDeliverRecordedExternalData(CMSampleBufferRef sample_buffer);
+  OSType GetAudioUnitSubType() const;
+  void SetAudioUnitSubType(OSType sub_type);
   int GetPlayoutAudioParameters(AudioParameters* params) const override;
   int GetRecordAudioParameters(AudioParameters* params) const override;
 #endif  // WEBRTC_IOS
@@ -141,6 +143,10 @@ class AudioDeviceModuleIOS : public AudioDeviceModule {
   const std::unique_ptr<TaskQueueFactory> task_queue_factory_;
   std::unique_ptr<AudioDeviceIOS> audio_device_;
   std::unique_ptr<AudioDeviceBuffer> audio_device_buffer_;
+
+#if defined(WEBRTC_IOS)
+  OSType audio_unit_sub_type_ = kAudioUnitSubType_VoiceProcessingIO;
+#endif // WEBRTC_IOS
 };
 }  // namespace ios_adm
 }  // namespace webrtc

@@ -75,6 +75,8 @@ AudioDeviceModuleIOS::AudioDeviceModuleIOS()
     audio_device_.reset(new ios_adm::AudioDeviceIOS());
     RTC_CHECK(audio_device_);
 
+    audio_device_->audio_unit_sub_type = audio_unit_sub_type_;
+
     this->AttachAudioBuffer();
 
     AudioDeviceGeneric::InitStatus status = audio_device_->Init();
@@ -653,6 +655,18 @@ AudioDeviceModuleIOS::AudioDeviceModuleIOS()
 #if defined(WEBRTC_IOS)
   void AudioDeviceModuleIOS::OnDeliverRecordedExternalData(CMSampleBufferRef sample_buffer) {
     audio_device_->OnDeliverRecordedExternalData(sample_buffer);
+  }
+
+  OSType AudioDeviceModuleIOS::GetAudioUnitSubType() const {
+    return audio_unit_sub_type_;
+  }
+
+  void AudioDeviceModuleIOS::SetAudioUnitSubType(OSType sub_type) {
+    audio_unit_sub_type_ = sub_type;
+
+    if (audio_device_) {
+      audio_device_->audio_unit_sub_type = sub_type;
+    }
   }
 
   int AudioDeviceModuleIOS::GetPlayoutAudioParameters(

@@ -162,6 +162,8 @@ class AudioDeviceIOS : public AudioDeviceGeneric,
 
   bool IsInterrupted();
 
+  OSType audio_unit_sub_type;
+
  private:
   // Called by the relevant AudioSessionObserver methods on |thread_|.
   void HandleInterruptionBegin();
