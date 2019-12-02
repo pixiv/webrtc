@@ -17,6 +17,8 @@ This is a fork of WebRTC made by [pixiv Inc](https://www.pixiv.co.jp/).
   to retrieve the last frame at an arbitrary time is introduced.
 - APIs necessary to deliver recorded audio data on iOS's broadcast extension is
   added.
+- An audio unit component other than the Voice-Processing I/O unit can be used
+  to record audio on iOS.
 
 # Delivering audio data on iOS's broadcast extension
 
@@ -77,6 +79,14 @@ Set `YES` on broadcast extension. That prevents initializing the audio unit.
 ### `RTCAudioSession.isAudioEnabled`
 
 Set `NO` on broadcast extension. That disables the audio unit.
+
+# Using an audio unit component other than the Voice-Processing I/O unit on iOS
+
+The Voice-Processing I/O unit has features favorable for two-way communication
+such as echo suppression. These features may not be needed for other scenarios,
+and even cause problems like reduced volume.
+
+Use another audio unit component to cover such scenarios.
 
 ## `RTCAudioDeviceModule.audioUnitSubType`
 

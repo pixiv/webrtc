@@ -16,6 +16,8 @@
 - 最後のフレームを任意のタイミングで取得できる、簡単な `webrtc::VideoSinkInterface` が
   `webrtc::VideoBuffer` として追加されています。
 - iOS の broadcast extension で録音した音声を配信するために必要な API が追加されています。
+- iOS で録音するときに Voice-Processing I/O unit 以外の audio unit component が
+  使えるようになっています。
 
 # iOS の broadcast extension で録音した音声を配信する
 
@@ -78,6 +80,14 @@ Broadcast extension では `YES` に設定してください。これは audio u
 ### `RTCAudioSession.isAudioEnabled`
 
 Broadcast extension では `NO` に設定してください。これは audio unit を無効にします。
+
+# iOS 上で Voice-Processing I/O 以外の audio unit component を利用する
+
+Voice-Processing I/O unit にはエコーキャンセリングのような双方向のコミュニケーションに
+適した機能があります。これらの機能は場合によっては不要であり、音量の低下などの問題を引き起こし
+さえします。
+
+そのような場合を網羅するためには他の audio unit component を利用してください。
 
 ## `RTCAudioDeviceModule.audioUnitSubType`
 
