@@ -219,23 +219,22 @@ bool VideoAdapter::AdaptFrameResolution(int in_width,
   }
   const Fraction scale = FindScale((*cropped_width) * (*cropped_height),
                                    target_pixel_count, max_pixel_count);
-  // Adjust cropping slightly to get even integer output size and a perfect
-  // scale factor. Make sure the resulting dimensions are aligned correctly
-  // to be nice to hardware encoders.
-  *cropped_width =
-      roundUp(*cropped_width,
-              scale.denominator * required_resolution_alignment_, in_width);
-  *cropped_height =
-      roundUp(*cropped_height,
-              scale.denominator * required_resolution_alignment_, in_height);
-  RTC_DCHECK_EQ(0, *cropped_width % scale.denominator);
-  RTC_DCHECK_EQ(0, *cropped_height % scale.denominator);
 
-  // Calculate final output size.
-  *out_width = *cropped_width / scale.denominator * scale.numerator;
-  *out_height = *cropped_height / scale.denominator * scale.numerator;
+  // Make sure the resulting dimensions are aligned correctly to be nice to
+  // hardware encoders.
+  *out_width =
+      roundUp(*cropped_width * scale.numerator,
+              scale.denominator * required_resolution_alignment_,
+              in_width * scale.numerator) / scale.denominator;
+  *out_height =
+      roundUp(*cropped_height * scale.numerator,
+              scale.denominator * required_resolution_alignment_,
+              in_height * scale.numerator) / scale.denominator;
   RTC_DCHECK_EQ(0, *out_width % required_resolution_alignment_);
   RTC_DCHECK_EQ(0, *out_height % required_resolution_alignment_);
+
+  *cropped_width = (*out_width * scale.denominator + scale.numerator - 1) / scale.numerator;
+  *cropped_height = (*out_height * scale.denominator + scale.numerator - 1) / scale.numerator;
 
   ++frames_out_;
   if (scale.numerator != scale.denominator)
