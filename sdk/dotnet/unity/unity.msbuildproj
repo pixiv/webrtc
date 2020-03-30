@@ -9,7 +9,7 @@
 <Project>
     <PropertyGroup>
         <BaseOutputPath>bin/</BaseOutputPath>
-        <Configuration>Debug</Configuration>
+        <Configuration>Release</Configuration>
         <OutputPath>$(BaseOutputPath)$(Configuration)/</OutputPath>
     </PropertyGroup>
     <Import Project="$(MSBuildToolsPath)/Microsoft.Common.targets" />
@@ -19,7 +19,7 @@
         <FullOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</FullOutputPath>
         <IsDebug Condition="'$(Configuration)' == Debug">true</IsDebug>
         <IsDebug Condition="'$(Configuration)' != Debug">false</IsDebug>
-        <Targets>Android;Ios;LinuxX64;MacX64;WinX64</Targets>
+        <Targets>LinuxX64;WinX64</Targets>
         <ParsibleTargets>;$(Targets);</ParsibleTargets>
         <EscapedFullIntermediateOutputPath>"$(FullIntermediateOutputPath.Replace('\', '\\').Replace('"', '\"'))"</EscapedFullIntermediateOutputPath>
         <EscapedFullOutputPath>$(FullOutputPath.Replace('\', '\\').Replace('"', '\"'))</EscapedFullOutputPath>
