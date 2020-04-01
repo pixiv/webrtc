@@ -338,8 +338,8 @@ namespace Pixiv.Webrtc
             IntPtr audioData,
             int bitsPerSample,
             int sampleRate,
-            [MarshalAs(UnmanagedType.SysUInt)] int numberOfChannels,
-            [MarshalAs(UnmanagedType.SysUInt)] int numberOfFrames
+            [MarshalAs(UnmanagedType.U4)] int numberOfChannels,
+            [MarshalAs(UnmanagedType.U4)] int numberOfFrames
         );
 
         public static void OnData(
