@@ -328,12 +328,12 @@ RTC_EXPORT extern "C" bool
 webrtcPeerConnectionInterfaceAddICECandidate(WebrtcPeerConnectionInterface* connection,
                                       const char* sdpMid,
                                       size_t sdpMLineIndex,
-                                      const char* candidate) {
+                                      const char* sdp) {
   webrtc::SdpParseError error;
-  webrtc::IceCandidateInterface * can = webrtc::CreateIceCandidate(sdp_mid, sdp_mlineindex, sdp, &error);
+  webrtc::IceCandidateInterface * candidate = webrtc::CreateIceCandidate(sdpMid, sdpMLineIndex, sdp, &error);
 
   return rtc::ToCplusplus(connection)
-                      ->AddIceCandidate(can);
+                      ->AddIceCandidate(candidate);
 }
 
 RTC_EXPORT extern "C" void webrtcPeerConnectionInterfaceClose(
