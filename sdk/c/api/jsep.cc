@@ -94,13 +94,13 @@ extern "C" void webrtcDeleteSessionDescriptionInterface(
 extern "C" bool webrtcIceCandidateInterfaceResolve(
     const WebrtcIceCandidateInterface* candidate,
     RtcString** sdpMid,
-    int** sdpMLineIndex,
+    int* sdpMLineIndex,
     RtcString** sdp
     ) {
 
   auto c = rtc::ToCplusplus(candidate);
   auto i = c->sdp_mline_index();
-  *sdpMLineIndex = &i;
+  sdpMLineIndex = &i;
 
   auto g = c->sdp_mid();
   *sdpMid = rtc::ToC(&g);

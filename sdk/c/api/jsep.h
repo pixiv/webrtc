@@ -63,7 +63,7 @@ RTC_EXPORT void webrtcDeleteSessionDescriptionInterface(
 RTC_EXPORT bool webrtcIceCandidateInterfaceResolve(
     const WebrtcIceCandidateInterface* candidate,
     RtcString** sdpMid,
-    int ** sdpMLineIndex,
+    int* sdpMLineIndex,
     RtcString** sdp);
 
 RTC_EXPORT WebrtcCreateSessionDescriptionObserver*
