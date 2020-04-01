@@ -857,7 +857,7 @@ namespace Pixiv.Webrtc
             IntPtr connection,
             [MarshalAs(UnmanagedType.LPStr)] string sdpMid,
             [MarshalAs(UnmanagedType.U4)] int sdpMLineIndex,
-            [MarshalAs(UnmanagedType.LPStr)] string candidate
+            [MarshalAs(UnmanagedType.LPStr)] string sdp
         );
 
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
@@ -923,6 +923,18 @@ namespace Pixiv.Webrtc
 
             return new RtcErrorOr<DisposableRtpSenderInterface>(error, value);
         }
+
+        public static bool AddICECandidate(this IPeerConnectionInterface connection,
+            string sdpMid,
+            int sdpMlineIndex,
+            string sdp)
+        {
+            var result = webrtcPeerConnectionInterfaceAddICECandidate(
+                connection.Ptr, sdpMid, sdpMlineIndex, sdp);
+
+            return result;
+        }
+
 
         public static void Close(this IPeerConnectionInterface connection)
         {
