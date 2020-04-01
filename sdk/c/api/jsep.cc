@@ -100,7 +100,7 @@ extern "C" bool webrtcIceCandidateInterfaceResolve(
 
   auto c = rtc::ToCplusplus(candidate);
   auto _sdpMid = new std::string();
-  int _sdpMLineIndex = new std::int32_t();
+  int _sdpMLineIndex;
   auto _sdp = new std::string();
   *sdpMid = rtc::ToC(_sdpMid);
   *sdpMLineIndex = rtc::ToC(_sdpMLineIndex);
@@ -108,10 +108,8 @@ extern "C" bool webrtcIceCandidateInterfaceResolve(
 
   c->ToString(_sdpMid);
   _sdpMLineIndex = c->sdp_mline_index;
-  c->ToString(_sdp);
-  auto s = new std::string();
-  *out = rtc::ToC(s);
-  return rtc::ToCplusplus(candidate)->ToString(s);
+
+  return c->ToString(_sdp);
 }
 
 extern "C" WebrtcCreateSessionDescriptionObserver*
