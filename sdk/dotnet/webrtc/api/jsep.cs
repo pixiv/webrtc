@@ -240,18 +240,21 @@ namespace Pixiv.Webrtc
     public static class IceCandidateInterfaceExtension
     {
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool webrtcIceCandidateInterfaceToString(
+        private static extern bool webrtcIceCandidateInterfaceResolve(
             IntPtr ptr,
-            out IntPtr result
+            out IntPtr sdpMid,
+            out int sdpMLineIndex,
+            out IntPtr sdp
         );
 
-        public static bool TryToString(
-            this IIceCandidateInterface candidate, out string s)
+        public static bool Resolve(
+            this IIceCandidateInterface candidate, out string sdpMid, out int sdpMLineIndex, out string sdp)
         {
-            var result = webrtcIceCandidateInterfaceToString(
-                candidate.Ptr, out var webrtcString);
+            var result = webrtcIceCandidateInterfaceResolve(
+                candidate.Ptr, out var _sdpMid, out sdpMLineIndex, out var _sdp);
 
-            s = Rtc.Interop.String.MoveToString(webrtcString);
+            sdpMid = Rtc.Interop.String.MoveToString(_sdpMid);
+            sdp = Rtc.Interop.String.MoveToString(_sdp);
 
             return result;
         }
