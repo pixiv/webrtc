@@ -105,7 +105,7 @@ extern "C" bool webrtcIceCandidateInterfaceResolve(
 
   auto g = new std::string();
   *sdpMid = rtc::ToC(g);
-  g.assign(c->sdp_mid());
+  g->assign(c->sdp_mid());
     
   auto s = new std::string();
   *sdp = rtc::ToC(s);
