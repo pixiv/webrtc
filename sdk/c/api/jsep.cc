@@ -99,9 +99,11 @@ extern "C" bool webrtcIceCandidateInterfaceResolve(
     ) {
 
   auto c = rtc::ToCplusplus(candidate);
-  *sdpMLineIndex = &c->sdp_mline_index();
-  auto g = &c->sdp_mid();
-  *sdpMid = rtc::ToC(g);
+  auto i = c->sdp_mline_index();
+  *sdpMLineIndex = &i;
+
+  auto g = c->sdp_mid();
+  *sdpMid = rtc::ToC(&g);
 
   auto s = new std::string();
   *sdp = rtc::ToC(s);
