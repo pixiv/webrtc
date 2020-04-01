@@ -99,17 +99,12 @@ extern "C" bool webrtcIceCandidateInterfaceResolve(
     ) {
 
   auto c = rtc::ToCplusplus(candidate);
-  auto _sdpMid = new std::string();
-  int _sdpMLineIndex;
-  auto _sdp = new std::string();
-  *sdpMid = rtc::ToC(_sdpMid);
-  *sdpMLineIndex = rtc::ToC(_sdpMLineIndex);
-  *sdp = rtc::ToC(_sdp);
+  *sdpMLineIndex = c->sdp_mline_index();
+  *sdpMid = rtc::ToC(c->sdp_mid());
 
-  c->ToString(_sdpMid);
-  _sdpMLineIndex = c->sdp_mline_index;
-
-  return c->ToString(_sdp);
+  auto s = new std::string();
+  *sdp = rtc::ToC(s);
+  return c->ToString(s);
 }
 
 extern "C" WebrtcCreateSessionDescriptionObserver*
