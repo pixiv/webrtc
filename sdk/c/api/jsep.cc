@@ -103,12 +103,10 @@ extern "C" bool webrtcIceCandidateInterfaceResolve(
   auto i = c->sdp_mline_index();
   sdpMLineIndex = &i;
 
-  auto g = c->sdp_mid();
-  if (g.empty())  {
-    g = "";
-  }
-  *sdpMid = rtc::ToC(&g);
-  
+  auto g = new std::string();
+  *sdpMid = rtc::ToC(g);
+  g.assign(c->sdp_mid());
+    
   auto s = new std::string();
   *sdp = rtc::ToC(s);
   return c->ToString(s);
