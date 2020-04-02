@@ -25,7 +25,7 @@ RTC_EXPORT extern "C" RtcString* webrtcDataChannelStatus(
 }
 
 RTC_EXPORT extern "C" void webrtcDataChannelSendText(
-    const WebrtcDataChannelInterface* channel,
+    WebrtcDataChannelInterface* channel,
     const char* text
     ) {
       auto chan = rtc::ToCplusplus(channel);
@@ -34,7 +34,7 @@ RTC_EXPORT extern "C" void webrtcDataChannelSendText(
 }
 
 RTC_EXPORT extern "C" void webrtcDataChannelSendData(
-    const WebrtcDataChannelInterface* channel,
+    WebrtcDataChannelInterface* channel,
     const char* data,
     size_t len
     ) {
