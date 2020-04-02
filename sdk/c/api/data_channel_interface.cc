@@ -30,7 +30,8 @@ RTC_EXPORT extern "C" bool webrtcDataChannelSendText(
     ) {
       auto chan = rtc::ToCplusplus(channel);
       auto db = webrtc::DataBuffer(text);
-      return chan->Send(&db);
+      auto res = chan->Send(&db);
+      return res;
 }
 
 RTC_EXPORT extern "C" bool webrtcDataChannelSendData(
@@ -41,6 +42,8 @@ RTC_EXPORT extern "C" bool webrtcDataChannelSendData(
       auto chan = rtc::ToCplusplus(channel);
       rtc::CopyOnWriteBuffer writeBuffer(data, len);
       const webrtc::DataBuffer db = webrtc::DataBuffer(writeBuffer, true);
-      return chan->Send(&db);
+      auto res = chan->Send(&db);
+      return res;
+
 }
 
