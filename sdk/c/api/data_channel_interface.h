@@ -33,7 +33,7 @@ RTC_EXPORT bool webrtcDataChannelSendText(
 
 RTC_EXPORT RtcString* webrtcDataChannelSendData(
     const WebrtcDataChannelInterface* channel,
-    const void* data,
+    const char* data,
     size_t len);
 
 
