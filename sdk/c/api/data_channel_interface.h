@@ -27,11 +27,11 @@ RTC_EXPORT RtcString* webrtcDataChannelLabel(
 RTC_EXPORT RtcString* webrtcDataChannelStatus(
     const WebrtcDataChannelInterface* channel);
 
-RTC_EXPORT void webrtcDataChannelSendText(
+RTC_EXPORT bool webrtcDataChannelSendText(
     WebrtcDataChannelInterface* channel,
     const char* text);
 
-RTC_EXPORT void webrtcDataChannelSendData(
+RTC_EXPORT bool webrtcDataChannelSendData(
     WebrtcDataChannelInterface* channel,
     const char* data,
     size_t len);
