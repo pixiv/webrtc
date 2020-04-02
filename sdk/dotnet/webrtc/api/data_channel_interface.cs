@@ -47,6 +47,16 @@ namespace Pixiv.Webrtc
            IntPtr ptr
        );
 
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool webrtcDataChannelSendText(
+           IntPtr ptr, string text 
+       );
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool webrtcDataChannelSendData(
+           IntPtr ptr, IntPtr data, int len
+       );
+
         public static string Label(this IDisposableDataChannelInterface channel)
         {
             return Rtc.Interop.String.MoveToString(
@@ -57,6 +67,24 @@ namespace Pixiv.Webrtc
         {
             return Rtc.Interop.String.MoveToString(
                 webrtcDataChannelStatus(channel.Ptr));
+        }
+
+        public static bool Send(this IDisposableDataChannelInterface channel, byte[] data)
+        {
+            var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                return webrtcDataChannelSendData(channel.Ptr, handle.AddrOfPinnedObject(), data.Length);
+            }
+            finally
+            {
+                handle.Free();
+            }
+        }
+
+        public static bool Send(this IDisposableDataChannelInterface channel, string text)
+        {
+            return webrtcDataChannelSendText(channel.Ptr, text);
         }
     }
 }
