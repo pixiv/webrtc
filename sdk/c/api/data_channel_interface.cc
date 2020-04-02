@@ -21,5 +21,5 @@ RTC_EXPORT extern "C" RtcString* webrtcDataChannelStatus(
     const WebrtcDataChannelInterface* channel) {
       auto chan = rtc::ToCplusplus(channel);
       auto sState = chan->DataStateString(chan->state());
-      return rtc::ToC(std::string(sState));
+      return rtc::ToC(new std::string(sState));
 }
