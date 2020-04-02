@@ -18,10 +18,10 @@ extern "C" {
 
 RTC_C_CLASS(webrtc::DataChannelInterface, WebrtcDataChannelInterface)
 
-RTC_EXPORT RtcString* webrtcDataChannelLabel(
+RTC_EXPORT void webrtcDataChannelInterfaceRelease(
     const WebrtcDataChannelInterface* channel);
 
-RTC_EXPORT void webrtcDataChannelInterfaceRelease(
+RTC_EXPORT RtcString* webrtcDataChannelLabel(
     const WebrtcDataChannelInterface* channel);
 
 #ifdef __cplusplus
