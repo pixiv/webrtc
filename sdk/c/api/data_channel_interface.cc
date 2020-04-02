@@ -19,5 +19,5 @@ RTC_EXPORT extern "C" RtcString* webrtcDataChannelLabel(
 
 RTC_EXPORT extern "C" RtcString* webrtcDataChannelStatus(
     const WebrtcDataChannelInterface* channel) {
-  return rtc::ToC(new auto(rtc::ToCplusplus(WebrtcDataChannelInterface->DataStateString(channel->state()))));
+  return rtc::ToC(new auto(WebrtcDataChannelInterface->DataStateString(rtc::ToCplusplus(channel)->state())));
 }
