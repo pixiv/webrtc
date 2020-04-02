@@ -24,6 +24,9 @@ RTC_EXPORT void webrtcDataChannelInterfaceRelease(
 RTC_EXPORT RtcString* webrtcDataChannelLabel(
     const WebrtcDataChannelInterface* channel);
 
+RTC_EXPORT RtcString* webrtcDataChannelStatus(
+    const WebrtcDataChannelInterface* channel);
+
 #ifdef __cplusplus
 }
 #endif

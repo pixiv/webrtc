@@ -42,10 +42,21 @@ namespace Pixiv.Webrtc
             IntPtr ptr
         );
 
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcDataChannelStatus(
+           IntPtr ptr
+       );
+
         public static string Label(this IDisposableDataChannelInterface channel)
         {
             return Rtc.Interop.String.MoveToString(
                 webrtcDataChannelLabel(channel.Ptr));
+        }
+
+        public static string Status(this IDisposableDataChannelInterface channel)
+        {
+            return Rtc.Interop.String.MoveToString(
+                webrtcDataChannelStatus(channel.Ptr));
         }
     }
 }
