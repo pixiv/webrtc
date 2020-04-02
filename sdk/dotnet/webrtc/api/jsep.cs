@@ -23,8 +23,18 @@ namespace Pixiv.Webrtc
         IntPtr Ptr { get; }
     }
 
+    public interface IDataChannelObserver
+    {
+        IntPtr Ptr { get; }
+    }
+
     public interface IDisposableCreateSessionDescriptionObserver :
         ICreateSessionDescriptionObserver, Rtc.IDisposable
+    {
+    }
+
+    public interface IDisposableDataChannelObserver :
+        IDataChannelObserver, Rtc.IDisposable
     {
     }
 
@@ -54,6 +64,13 @@ namespace Pixiv.Webrtc
         void OnFailure(RtcError error);
     }
 
+    public interface IManagedDataChannelObserver
+    {
+        void OnStateChange(DisposableDataChannelInterface desc);
+
+        
+    }
+
     public interface IManagedSetSessionDescriptionObserver
     {
         void OnSuccess();
@@ -68,6 +85,31 @@ namespace Pixiv.Webrtc
     public interface ISetSessionDescriptionObserver
     {
         IntPtr Ptr { get; }
+    }
+
+    public sealed class DisposableDataChannelObserver: DisposablePtr, IDisposableDataChannelObserver
+    {
+        IntPtr IDataChannelObserver.Ptr => Ptr;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void DestructionHandler(IntPtr context);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void StateChangeHandler(IntPtr context, IntPtr state);
+
+        [MonoPInvokeCallback(typeof(StateChangeHandler))]
+        private static void OnStateChange(IntPtr context, IntPtr state)
+        {
+            var handle = (GCHandle)context;
+
+            ((IManagedDataChannelObserver)handle.Target).OnStateChange(
+                new DisposableDataChannelInterface(state)
+            );
+        }
+        private protected override void FreePtr()
+        {
+            Interop.DataChannelObserver.Release(Ptr);
+        }
     }
 
     public sealed class DisposableCreateSessionDescriptionObserver :
@@ -309,6 +351,12 @@ namespace Pixiv.Webrtc.Interop
     public static class CreateSessionDescriptionObserver
     {
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcCreateSessionDescriptionObserverRelease")]
+        public static extern void Release(IntPtr ptr);
+    }
+
+    public static class DataChannelObserver
+    {
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDataChannelObserverRelease")]
         public static extern void Release(IntPtr ptr);
     }
 

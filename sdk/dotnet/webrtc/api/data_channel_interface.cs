@@ -4,7 +4,7 @@
  *  Use of this source code is governed by a license that can be
  *  found in the LICENSE.pixiv file in the root of the source tree.
  */
-
+using Pixiv.Rtc;
 using System;
 using System.Runtime.InteropServices;
 
@@ -21,7 +21,7 @@ namespace Pixiv.Webrtc
     }
 
     public sealed class DisposableDataChannelInterface :
-        Rtc.DisposablePtr, IDisposableDataChannelInterface
+        DisposablePtr, IDisposableDataChannelInterface
     {
         IntPtr IDataChannelInterface.Ptr => Ptr;
 
@@ -33,6 +33,19 @@ namespace Pixiv.Webrtc
         private protected override void FreePtr()
         {
             Interop.DataChannelInterface.Release(Ptr);
+        }        
+    }
+    public static class DataChannelInterfaceExtension
+    {
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcDataChannelLabel(
+            IntPtr ptr
+        );
+
+        public static string Label(this IDisposableDataChannelInterface channel)
+        {
+            return Rtc.Interop.String.MoveToString(
+                webrtcDataChannelLabel(channel.Ptr));
         }
     }
 }
