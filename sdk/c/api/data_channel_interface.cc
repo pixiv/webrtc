@@ -24,7 +24,7 @@ RTC_EXPORT extern "C" RtcString* webrtcDataChannelStatus(
       return rtc::ToC(new std::string(sState));
 }
 
-RTC_EXPORT extern "C" const bool webrtcDataChannelSendText(
+RTC_EXPORT extern "C" bool webrtcDataChannelSendText(
     const WebrtcDataChannelInterface* channel,
     const char* text
     ) {
@@ -33,7 +33,7 @@ RTC_EXPORT extern "C" const bool webrtcDataChannelSendText(
       return chan->Send(&db);
 }
 
-RTC_EXPORT extern "C" const bool webrtcDataChannelSendData(
+RTC_EXPORT extern "C" bool webrtcDataChannelSendData(
     const WebrtcDataChannelInterface* channel,
     const char* data,
     size_t len
