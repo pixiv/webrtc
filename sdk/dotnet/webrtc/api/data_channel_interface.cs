@@ -56,7 +56,7 @@ namespace Pixiv.Webrtc
         );
 
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr webrtcDataChannelStatus(
+        private static extern int webrtcDataChannelStatus(
            IntPtr ptr
        );
 
@@ -76,10 +76,9 @@ namespace Pixiv.Webrtc
                 webrtcDataChannelLabel(channel.Ptr));
         }
 
-        public static string Status(this IDisposableDataChannelInterface channel)
+        public static int Status(this IDisposableDataChannelInterface channel)
         {
-            return Rtc.Interop.String.MoveToString(
-                webrtcDataChannelStatus(channel.Ptr));
+            return webrtcDataChannelStatus(channel.Ptr);
         }
 
         public static bool Send(this IDisposableDataChannelInterface channel, byte[] data)
