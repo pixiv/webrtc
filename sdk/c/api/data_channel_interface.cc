@@ -41,12 +41,7 @@ class DelegatingDataChannelObserver
   };
 }
 
-struct WebrtcDataChannelObserverFunctions {
-  void (*on_destruction)(void*);
-  void (*on_state_change)(void*);
-  void (*on_message)(void*, bool binary, void* data, size_t len);
-  void (*on_buffered_amount_change)(void*, uint64_t);
-};
+
 
 RTC_EXPORT extern "C" void webrtcDataChannelInterfaceRelease(
     const WebrtcDataChannelInterface* channel) {
