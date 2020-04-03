@@ -88,7 +88,8 @@ RTC_EXPORT extern "C" WebrtcDataChannelObserver* webrtcDataChannelRegisterObserv
       auto chan = rtc::ToCplusplus(channel);
       auto obs = new webrtc::DelegatingDataChannelObserver(channel, functions);
       chan->RegisterObserver(obs);
-      return obs;
+      auto o = rtc::ToC(obs);
+      return o;
 }
 
 RTC_EXPORT extern "C" void webrtcDataChannelUnregisterObserver(
