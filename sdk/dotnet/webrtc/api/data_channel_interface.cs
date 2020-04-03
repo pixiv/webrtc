@@ -33,7 +33,15 @@ namespace Pixiv.Webrtc
         private protected override void FreePtr()
         {
             Interop.DataChannelInterface.Release(Ptr);
-        }        
+        }       
+        
+        public IntPtr GetPtr
+        {
+            get
+            {
+                return Ptr;
+            }
+        }
     }
     public static class DataChannelInterfaceExtension
     {
@@ -90,6 +98,11 @@ namespace Pixiv.Webrtc
         public static bool Send(this IDisposableDataChannelInterface channel, string text)
         {
             return webrtcDataChannelSendText(channel.Ptr, text);
+        }
+
+        public static void UnRegisterObserver(this IDisposableDataChannelInterface channel)
+        {
+            webrtcDataChannelUnRegisterObserver(channel.Ptr);
         }
     }
 }

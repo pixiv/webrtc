@@ -44,6 +44,7 @@ RTC_EXPORT bool webrtcDataChannelSendData(
     size_t len);
 
 RTC_EXPORT WebrtcDataChannelObserver* webrtcDataChannelRegisterObserver(
+    void* context,
     WebrtcDataChannelInterface* channel,
     const struct WebrtcDataChannelObserverFunctions* functions);
 

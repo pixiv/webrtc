@@ -40,8 +40,9 @@ namespace Pixiv.Webrtc
 
     public interface IManagedDataChannelObserver
     {
+        DisposableDataChannelInterface DataChannel { get; }
         void OnStateChange();
-        void OnMessage(RTCDataBufferInterface buffer);
+        void OnMessage(bool binary, IntPtr data, int data_size);
         void OnBufferedAmountChange(UInt64 sent_data_size);
     }
 
@@ -107,8 +108,9 @@ namespace Pixiv.Webrtc
         IntPtr IDataChannelObserver.Ptr => Ptr;
 
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr webrtcDataChannelObserver(
+        private static extern IntPtr webrtcDataChannelRegisterObserver(
             IntPtr context,
+            IntPtr dataChannel,
             IntPtr functions
         );
 
@@ -119,19 +121,17 @@ namespace Pixiv.Webrtc
         private delegate void OnBufferedAmountChangeHandler(IntPtr context, ulong sent_data_size);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void OnMessageHandler(IntPtr context, RTCDataBufferInterface buffer);
+        private delegate void OnMessageHandler(IntPtr context, bool binary, IntPtr data, int data_size);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void OnStateChangeHandler(IntPtr context);
 
         private static readonly FunctionPtrArray s_functions = new FunctionPtrArray(
             (DestructionHandler)OnDestruction,
-            (OnBufferedAmountChangeHandler)OnBufferedAmountChange,
+            (OnStateChangeHandler)OnStateChange,
             (OnMessageHandler)OnMessage,
-            (OnStateChangeHandler)OnStateChange
+            (OnBufferedAmountChangeHandler)OnBufferedAmountChange
         );
-
-
 
         [MonoPInvokeCallback(typeof(OnStateChangeHandler))]
         private static void OnStateChange(IntPtr context)
@@ -142,11 +142,11 @@ namespace Pixiv.Webrtc
         }
 
         [MonoPInvokeCallback(typeof(OnMessageHandler))]
-        private static void OnMessage(IntPtr context, RTCDataBufferInterface buffer)
+        private static void OnMessage(IntPtr context, bool binary, IntPtr data, int data_size)
         {
             var handle = (GCHandle)context;
 
-            ((IManagedDataChannelObserver)handle.Target).OnMessage(buffer);
+            ((IManagedDataChannelObserver)handle.Target).OnMessage(binary, data, data_size);
         }
 
         [MonoPInvokeCallback(typeof(OnBufferedAmountChangeHandler))]
@@ -171,10 +171,17 @@ namespace Pixiv.Webrtc
         public DisposableDataChannelObserver(
             IManagedDataChannelObserver implementation)
         {
-            Ptr = webrtcDataChannelObserver(
+            DataChannel = implementation.DataChannel;
+            Ptr = webrtcDataChannelRegisterObserver(
                 (IntPtr)GCHandle.Alloc(implementation),
+                implementation.DataChannel.GetPtr,
                 s_functions.Ptr
             );
+        }
+
+        public DisposableDataChannelInterface DataChannel
+        {
+            get; private set;
         }
 
     }
