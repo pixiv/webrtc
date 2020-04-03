@@ -24,7 +24,7 @@ namespace Pixiv.Webrtc
         DisposablePtr, IDisposableDataChannelInterface
     {
         IntPtr IDataChannelInterface.Ptr => Ptr;
-
+        
         internal DisposableDataChannelInterface(IntPtr ptr)
         {
             Ptr = ptr;
@@ -37,6 +37,11 @@ namespace Pixiv.Webrtc
     }
     public static class DataChannelInterfaceExtension
     {
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcDataChannelRegisterObserver(IntPtr s, IntPtr o);
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void webrtcDataChannelUnRegisterObserver(IntPtr s);
+
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr webrtcDataChannelLabel(
             IntPtr ptr

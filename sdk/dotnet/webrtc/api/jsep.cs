@@ -23,14 +23,36 @@ namespace Pixiv.Webrtc
         IntPtr Ptr { get; }
     }
 
-    public interface IDataChannelObserver
+    public interface IRTCDataBufferInterface
     {
         IntPtr Ptr { get; }
+    }
+
+    public sealed class RTCDataBufferInterface : IRTCDataBufferInterface
+    {
+        public IntPtr Ptr { get; }
+
+        public RTCDataBufferInterface(IntPtr ptr)
+        {
+            Ptr = ptr;
+        }
+    }
+
+    public interface IManagedDataChannelObserver
+    {
+        void OnStateChange();
+        void OnMessage(RTCDataBufferInterface buffer);
+        void OnBufferedAmountChange(UInt64 sent_data_size);
     }
 
     public interface IDisposableCreateSessionDescriptionObserver :
         ICreateSessionDescriptionObserver, Rtc.IDisposable
     {
+    }
+
+    public interface IDataChannelObserver
+    {
+        IntPtr Ptr { get; }
     }
 
     public interface IDisposableDataChannelObserver :
@@ -64,13 +86,6 @@ namespace Pixiv.Webrtc
         void OnFailure(RtcError error);
     }
 
-    public interface IManagedDataChannelObserver
-    {
-        void OnStateChange(DisposableDataChannelInterface desc);
-
-        
-    }
-
     public interface IManagedSetSessionDescriptionObserver
     {
         void OnSuccess();
@@ -91,25 +106,77 @@ namespace Pixiv.Webrtc
     {
         IntPtr IDataChannelObserver.Ptr => Ptr;
 
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcDataChannelObserver(
+            IntPtr context,
+            IntPtr functions
+        );
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void DestructionHandler(IntPtr context);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void StateChangeHandler(IntPtr context, IntPtr state);
+        private delegate void OnBufferedAmountChangeHandler(IntPtr context, ulong sent_data_size);
 
-        [MonoPInvokeCallback(typeof(StateChangeHandler))]
-        private static void OnStateChange(IntPtr context, IntPtr state)
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void OnMessageHandler(IntPtr context, RTCDataBufferInterface buffer);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void OnStateChangeHandler(IntPtr context);
+
+        private static readonly FunctionPtrArray s_functions = new FunctionPtrArray(
+            (DestructionHandler)OnDestruction,
+            (OnBufferedAmountChangeHandler)OnBufferedAmountChange,
+            (OnMessageHandler)OnMessage,
+            (OnStateChangeHandler)OnStateChange
+        );
+
+
+
+        [MonoPInvokeCallback(typeof(OnStateChangeHandler))]
+        private static void OnStateChange(IntPtr context)
         {
             var handle = (GCHandle)context;
 
-            ((IManagedDataChannelObserver)handle.Target).OnStateChange(
-                new DisposableDataChannelInterface(state)
-            );
+            ((IManagedDataChannelObserver)handle.Target).OnStateChange();
         }
+
+        [MonoPInvokeCallback(typeof(OnMessageHandler))]
+        private static void OnMessage(IntPtr context, RTCDataBufferInterface buffer)
+        {
+            var handle = (GCHandle)context;
+
+            ((IManagedDataChannelObserver)handle.Target).OnMessage(buffer);
+        }
+
+        [MonoPInvokeCallback(typeof(OnBufferedAmountChangeHandler))]
+        private static void OnBufferedAmountChange(IntPtr context, ulong sent_data_size)
+        {
+            var handle = (GCHandle)context;
+
+            ((IManagedDataChannelObserver)handle.Target).OnBufferedAmountChange(sent_data_size);
+        }
+
         private protected override void FreePtr()
         {
             Interop.DataChannelObserver.Release(Ptr);
         }
+
+        [MonoPInvokeCallback(typeof(DestructionHandler))]
+        private static void OnDestruction(IntPtr context)
+        {
+            ((GCHandle)context).Free();
+        }
+
+        public DisposableDataChannelObserver(
+            IManagedDataChannelObserver implementation)
+        {
+            Ptr = webrtcDataChannelObserver(
+                (IntPtr)GCHandle.Alloc(implementation),
+                s_functions.Ptr
+            );
+        }
+
     }
 
     public sealed class DisposableCreateSessionDescriptionObserver :

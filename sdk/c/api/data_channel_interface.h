@@ -15,8 +15,8 @@
 
 extern "C" {
 #endif
-
 RTC_C_CLASS(webrtc::DataChannelInterface, WebrtcDataChannelInterface)
+RTC_C_CLASS(webrtc::DataChannelObserver, WebrtcDataChannelObserver)
 
 RTC_EXPORT void webrtcDataChannelInterfaceRelease(
     const WebrtcDataChannelInterface* channel);
@@ -35,6 +35,13 @@ RTC_EXPORT bool webrtcDataChannelSendData(
     WebrtcDataChannelInterface* channel,
     const char* data,
     size_t len);
+
+RTC_EXPORT WebrtcDataChannelObserver* webrtcDataChannelRegisterObserver(
+    WebrtcDataChannelInterface* channel,
+    const struct WebrtcDataChannelObserverFunctions* functions);
+
+RTC_EXPORT void webrtcDataChannelUnRegisterCallback(
+    WebrtcDataChannelInterface* channel);
 
 
 #ifdef __cplusplus

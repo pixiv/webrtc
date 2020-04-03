@@ -7,6 +7,47 @@
 
 #include "sdk/c/api/data_channel_interface.h"
 
+namespace webrtc {
+
+class DelegatingDataChannelObserver
+    : public DataChannelObserver {
+ public:
+  DelegatingDataChannelObserver(
+      void* context,
+      const struct WebrtcDataChannelObserverFunctions* functions) {
+    context_ = context;
+    functions_ = functions;
+  }
+
+  ~DelegatingDataChannelObserver() {
+    functions_->on_destruction(context_);
+  }
+
+  void OnStateChange() override {
+    functions_->on_state_change(context_);
+  }
+
+  void OnMessage(const DataBuffer& buffer) override {
+    functions_->on_message(context_, buffer.binary, buffer.data, buffer.size);
+  }
+
+  void OnBufferedAmountChange(uint64_t sent_data_size) override {
+    functions_->on_buffered_amount_change(context_, sent_data_size);
+  }
+
+ private:
+  void* context_;
+  const struct WebrtcDataChannelObserverFunctions* functions_;
+  };
+}
+
+struct WebrtcDataChannelObserverFunctions {
+  void (*on_destruction)(void*);
+  void (*on_state_change)(void*);
+  void (*on_message)(void*, bool binary, void* data, size_t len);
+  void (*on_buffered_amount_change)(void*, uint64_t);
+};
+
 RTC_EXPORT extern "C" void webrtcDataChannelInterfaceRelease(
     const WebrtcDataChannelInterface* channel) {
   rtc::ToCplusplus(channel)->Release();
@@ -42,6 +83,24 @@ RTC_EXPORT extern "C" bool webrtcDataChannelSendData(
       rtc::CopyOnWriteBuffer writeBuffer(data, len);
       const auto db = webrtc::DataBuffer(writeBuffer, true);
       return chan->Send(db);
+    }
+    
+RTC_EXPORT extern "C" WebrtcDataChannelObserver* webrtcDataChannelRegisterObserver(
+    WebrtcDataChannelInterface* channel,
+    const struct WebrtcDataChannelObserverFunctions* functions) {
 
+      auto chan = rtc::ToCplusplus(channel);
+      auto obs = new webrtc::DelegatingDataChannelObserver(channel, functions);
+      chan->RegisterObserver(obs);
+      return obs;
 }
+
+RTC_EXPORT extern "C" void webrtcDataChannelUnregisterObserver(
+    WebrtcDataChannelInterface* channel
+    ) {
+      auto chan = rtc::ToCplusplus(channel);
+      chan->UnregisterObserver();
+}
+
+
 
