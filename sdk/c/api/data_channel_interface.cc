@@ -28,7 +28,8 @@ class DelegatingDataChannelObserver
   }
 
   void OnMessage(const DataBuffer& buffer) override {
-    functions_->on_message(context_, buffer.binary, buffer.data, buffer.size);
+    auto * data = buffer.data.data();
+    functions_->on_message(context_, buffer.binary, data, buffer.size());
   }
 
   void OnBufferedAmountChange(uint64_t sent_data_size) override {

@@ -21,7 +21,7 @@ RTC_C_CLASS(webrtc::DataChannelObserver, WebrtcDataChannelObserver)
 struct WebrtcDataChannelObserverFunctions {
   void (*on_destruction)(void*);
   void (*on_state_change)(void*);
-  void (*on_message)(void*, bool binary, void* data, size_t len);
+  void (*on_message)(void*, bool binary, const uint8_t* data, size_t len);
   void (*on_buffered_amount_change)(void*, uint64_t);
 };
 
