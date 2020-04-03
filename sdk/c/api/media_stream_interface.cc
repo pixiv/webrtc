@@ -8,6 +8,8 @@
 #include "api/media_stream_interface.h"
 #include "rtc_base/ref_counted_object.h"
 #include "sdk/c/api/media_stream_interface.h"
+#include <string>
+using namespace std;
 
 namespace webrtc {
 
@@ -78,6 +80,9 @@ extern "C" void webrtcAudioTrackSinkInterfaceOnData(
     int sample_rate,
     size_t number_of_channels,
     size_t number_of_frames) {
+
+    string strMytestString("hello world");
+    cout << strMytestString;
   rtc::ToCplusplus(sink)->OnData(audio_data, bits_per_sample, sample_rate,
                                  number_of_channels, number_of_frames);
 }
