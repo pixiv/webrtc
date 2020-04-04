@@ -849,14 +849,14 @@ namespace Pixiv.Webrtc
             IntPtr connection,
             IntPtr track,
             [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] string[] data,
-            [MarshalAs(UnmanagedType.U4)] int size
+            int size
         );
 
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
         private static extern bool webrtcPeerConnectionInterfaceAddICECandidate(
             IntPtr connection,
             [MarshalAs(UnmanagedType.LPStr)] string sdpMid,
-            [MarshalAs(UnmanagedType.U4)] int sdpMLineIndex,
+            int sdpMLineIndex,
             [MarshalAs(UnmanagedType.LPStr)] string sdp
         );
 
