@@ -8,8 +8,6 @@
 #include "api/media_stream_interface.h"
 #include "rtc_base/ref_counted_object.h"
 #include "sdk/c/api/media_stream_interface.h"
-#include <string>
-using namespace std;
 
 namespace webrtc {
 
@@ -24,11 +22,11 @@ class DelegatingAudioSourceInterface : public AudioSourceInterface {
 
    ~DelegatingAudioSourceInterface() { functions_->on_destruction(context_); }
 
-   void RegisterObserver(ObserverInterface* observer) {
+   void RegisterAudioObserver(ObserverInterface* observer) {
      functions_->register_observer(context_, rtc::ToC(observer));
    }
 
-    void UnregisterObserver(ObserverInterface* observer) {
+    void UnregisterAudioObserver(ObserverInterface* observer) {
       functions_->unregister_observer(context_, rtc::ToC(observer));
     }
 
@@ -80,9 +78,6 @@ extern "C" void webrtcAudioTrackSinkInterfaceOnData(
     int sample_rate,
     size_t number_of_channels,
     size_t number_of_frames) {
-
-    string strMytestString("hello world");
-    cout << strMytestString;
   rtc::ToCplusplus(sink)->OnData(audio_data, bits_per_sample, sample_rate,
                                  number_of_channels, number_of_frames);
 }
