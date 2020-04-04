@@ -22,11 +22,11 @@ class DelegatingAudioSourceInterface : public AudioSourceInterface {
 
    ~DelegatingAudioSourceInterface() { functions_->on_destruction(context_); }
 
-   void RegisterAudioObserver(ObserverInterface* observer) {
+   void RegisterObserver(ObserverInterface* observer) {
      functions_->register_observer(context_, rtc::ToC(observer));
    }
 
-    void UnregisterAudioObserver(ObserverInterface* observer) {
+    void UnregisterObserver(ObserverInterface* observer) {
       functions_->unregister_observer(context_, rtc::ToC(observer));
     }
 
