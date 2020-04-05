@@ -54,9 +54,6 @@ RTC_EXPORT WebrtcSessionDescriptionInterface* webrtcCreateSessionDescription(
     const char* sdp,
     WebrtcSdpParseError** error);
 
-RTC_EXPORT void webrtcDataChannelObserverRelease(
-    const WebrtcDataChannelObserver* observer);
-
 RTC_EXPORT void webrtcCreateSessionDescriptionObserverRelease(
     const WebrtcCreateSessionDescriptionObserver* observer);
 

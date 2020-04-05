@@ -25,6 +25,9 @@ struct WebrtcDataChannelObserverFunctions {
   void (*on_buffered_amount_change)(void*, uint64_t);
 };
 
+RTC_EXPORT void webrtcDataChannelObserverRelease(
+    const WebrtcDataChannelObserver* observer);
+
 RTC_EXPORT void webrtcDataChannelInterfaceRelease(
     const WebrtcDataChannelInterface* channel);
 
