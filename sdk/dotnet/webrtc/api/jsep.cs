@@ -115,7 +115,7 @@ namespace Pixiv.Webrtc
         );
 
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr webrtcDataChannelUnRegisterObserver(
+        private static extern IntPtr webrtcDataChannelUnregisterObserver(
             IntPtr context
         );
 
@@ -164,7 +164,7 @@ namespace Pixiv.Webrtc
 
         private protected override void FreePtr()
         {
-            webrtcDataChannelUnRegisterObserver(Ptr);
+            webrtcDataChannelUnregisterObserver(Ptr);
             DataChannel.Dispose();
         }
 

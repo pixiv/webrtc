@@ -48,7 +48,7 @@ RTC_EXPORT WebrtcDataChannelObserver* webrtcDataChannelRegisterObserver(
     WebrtcDataChannelInterface* channel,
     const struct WebrtcDataChannelObserverFunctions* functions);
 
-RTC_EXPORT void webrtcDataChannelUnRegisterCallback(
+RTC_EXPORT void webrtcDataChannelUnregisterObserver(
     WebrtcDataChannelInterface* channel);
 
 
