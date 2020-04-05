@@ -26,7 +26,8 @@ for arg in argv[3:]:
     generics.append(path.join(argv[1], {
       'LinuxX64': 'linux_x64',
       'MacX64': 'mac_x64',
-      'WinX64': 'win_x64'
+      'WinX64': 'win_x64',
+      'WinX86': 'win_x86'
     }[arg]))
 
 builder = \
