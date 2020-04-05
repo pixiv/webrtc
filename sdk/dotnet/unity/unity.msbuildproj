@@ -92,7 +92,7 @@
             Command="gn gen &quot;--args=is_debug=$(IsDebug) rtc_enable_symbol_export=true target_os=\&quot;win\&quot; target_cpu=\&quot;x86\&quot;&quot; --root=$(EscapedMSBuildThisFileDirectory)../../.. $(EscapedIntermediateOutputPath)win_x86"
             Condition="!Exists('$(IntermediateOutputPath)win_x86/build.ninja')" />
         <Exec Command="ninja -C $(EscapedIntermediateOutputPath)win_x86 :jingle_peerconnection_so" />
-        <Copy DestinationFolder="$(OutputPath)Runtime/x86" SourceFiles="$(IntermediateOutputPath)win_x86/jingle_peerconnection_so.dll;$(MSBuildThisFileDirectory)Runtime/x86/jingle_peerconnection_so.dll.meta" />
+        <Copy DestinationFolder="$(OutputPath)Runtime/x86" SourceFiles="$(IntermediateOutputPath)win_x86/jingle_peerconnection_so.dll" />
     </Target>
     <Target Name="Restore">
         <MSBuild
