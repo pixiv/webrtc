@@ -428,6 +428,12 @@ namespace Pixiv.Webrtc.Interop
         public static extern void Release(IntPtr ptr);
     }
 
+    public static class DataChannelObserver
+    {
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDataChannelObserverRelease")]
+        public static extern void Release(IntPtr ptr);
+    }
+
     public static class SessionDescriptionInterface
     {
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDeleteSessionDescriptionInterface")]

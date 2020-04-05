@@ -37,8 +37,6 @@ RTC_C_CLASS(webrtc::CreateSessionDescriptionObserver,
 RTC_C_CLASS(webrtc::SetSessionDescriptionObserver,
             WebrtcSetSessionDescriptionObserver)
 
-
-
 struct WebrtcCreateSessionDescriptionObserverFunctions {
   void (*on_destruction)(void*);
   void (*on_success)(void*, WebrtcSessionDescriptionInterface*);
