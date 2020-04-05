@@ -19,7 +19,7 @@
         <FullOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</FullOutputPath>
         <IsDebug Condition="'$(Configuration)' == Debug">true</IsDebug>
         <IsDebug Condition="'$(Configuration)' != Debug">false</IsDebug>
-        <Targets>LinuxX64;LinuxX86;WinX64;WinX86</Targets>
+        <Targets>LinuxX64;WinX64;WinX86</Targets>
         <ParsibleTargets>;$(Targets);</ParsibleTargets>
         <EscapedFullIntermediateOutputPath>"$(FullIntermediateOutputPath.Replace('\', '\\').Replace('"', '\"'))"</EscapedFullIntermediateOutputPath>
         <EscapedFullOutputPath>$(FullOutputPath.Replace('\', '\\').Replace('"', '\"'))</EscapedFullOutputPath>
@@ -28,7 +28,7 @@
         <EscapedOutputPath>"$(OutputPath.Replace('\', '\\').Replace('"', '\"'))"</EscapedOutputPath>
         <EscapedTargets>"$(Targets.Replace('\', '\\').Replace('"', '\"'))"</EscapedTargets>
     </PropertyGroup>
-    <Target Name="Build" DependsOnTargets="BuildAndroid;BuildIos;BuildLinuxX64;BuildMacX64;BuildWinX64;BuildLinuxX86;BuildWinX86">
+    <Target Name="Build" DependsOnTargets="BuildAndroid;BuildIos;BuildLinuxX64;BuildMacX64;BuildWinX64;BuildWinX86">
         <Exec Command="../../../tools_webrtc/unity/generate_licenses.py $(EscapedIntermediateOutputPath) $(EscapedOutputPath) $(EscapedTargets.Replace(';', '&quot; &quot;'))" />
         <Copy
             DestinationFolder="$(OutputPath)"
@@ -71,13 +71,6 @@
             Condition="!Exists('$(IntermediateOutputPath)linux_x64/build.ninja')" />
         <Exec Command="ninja -C $(EscapedIntermediateOutputPath)linux_x64 :jingle_peerconnection_so" />
         <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(IntermediateOutputPath)linux_x64/libjingle_peerconnection_so.so;$(MSBuildThisFileDirectory)Runtime/libjingle_peerconnection_so.so.meta" />
-    </Target>
-    <Target Condition="$(ParsibleTargets.Contains(';LinuxX86;'))" Name="BuildLinuxX86" DependsOnTargets="BuildExternal">
-        <Exec
-            Command="gn gen &quot;--args=is_debug=$(IsDebug) rtc_enable_symbol_export=true target_os=\&quot;linux\&quot; target_cpu=\&quot;x86\&quot;&quot; --root=$(EscapedMSBuildThisFileDirectory)../../.. $(EscapedIntermediateOutputPath)linux_x86"
-            Condition="!Exists('$(IntermediateOutputPath)linux_x86/build.ninja')" />
-        <Exec Command="ninja -C $(EscapedIntermediateOutputPath)linux_x86 :jingle_peerconnection_so" />
-        <Copy DestinationFolder="$(OutputPath)Runtime/x86" SourceFiles="$(IntermediateOutputPath)linux_x86/libjingle_peerconnection_so.so;$(MSBuildThisFileDirectory)Runtime/x86/libjingle_peerconnection_so.so.meta" />
     </Target>
     <Target Condition="$(ParsibleTargets.Contains(';MacX64;'))" Name="BuildMacX64" DependsOnTargets="BuildExternal">
         <Exec
