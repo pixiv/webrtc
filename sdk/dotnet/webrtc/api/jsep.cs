@@ -107,17 +107,7 @@ namespace Pixiv.Webrtc
     {
         IntPtr IDataChannelObserver.Ptr => Ptr;
 
-        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr webrtcDataChannelRegisterObserver(
-            IntPtr context,
-            IntPtr dataChannel,
-            IntPtr functions
-        );
-
-        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr webrtcDataChannelUnregisterObserver(
-            IntPtr context
-        );
+        
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void DestructionHandler(IntPtr context);
@@ -164,7 +154,7 @@ namespace Pixiv.Webrtc
 
         private protected override void FreePtr()
         {
-            webrtcDataChannelUnregisterObserver(Ptr);
+            Interop.DataChannel.UnregisterObserver(DataChannel.GetPtr);
             DataChannel.Dispose();
         }
 
@@ -178,7 +168,7 @@ namespace Pixiv.Webrtc
             IManagedDataChannelObserver implementation)
         {
             DataChannel = implementation.DataChannel;
-            Ptr = webrtcDataChannelRegisterObserver(
+            Ptr = Interop.DataChannel.RegisterObserver(
                 (IntPtr)GCHandle.Alloc(implementation),
                 implementation.DataChannel.GetPtr,
                 s_functions.Ptr
@@ -434,10 +424,19 @@ namespace Pixiv.Webrtc.Interop
         public static extern void Release(IntPtr ptr);
     }
 
-    public static class DataChannelObserver
+    public static class DataChannel
     {
-        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDataChannelObserverDelete")]
-        public static extern void Delete(IntPtr ptr);
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDataChannelRegisterObserver")]
+        public static extern IntPtr RegisterObserver(
+            IntPtr context,
+            IntPtr dataChannel,
+            IntPtr functions
+        );
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDataChannelUnregisterObserver")]
+        public static extern void UnregisterObserver(
+            IntPtr context
+        );
     }
 
     public static class SessionDescriptionInterface
