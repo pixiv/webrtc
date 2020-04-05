@@ -28,7 +28,7 @@
         <EscapedOutputPath>"$(OutputPath.Replace('\', '\\').Replace('"', '\"'))"</EscapedOutputPath>
         <EscapedTargets>"$(Targets.Replace('\', '\\').Replace('"', '\"'))"</EscapedTargets>
     </PropertyGroup>
-    <Target Name="Build" DependsOnTargets="BuildAndroid;BuildIos;BuildLinuxX64;BuildMacX64;BuildWinX64;BuildWinX86">
+    <Target Name="Build" DependsOnTargets="BuildAndroid;BuildIos;BuildLinuxX64;BuildMacX64;BuildWinX64">
         <Exec Command="../../../tools_webrtc/unity/generate_licenses.py $(EscapedIntermediateOutputPath) $(EscapedOutputPath) $(EscapedTargets.Replace(';', '&quot; &quot;'))" />
         <Copy
             DestinationFolder="$(OutputPath)"
