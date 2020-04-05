@@ -37,6 +37,8 @@ RTC_C_CLASS(webrtc::CreateSessionDescriptionObserver,
 RTC_C_CLASS(webrtc::SetSessionDescriptionObserver,
             WebrtcSetSessionDescriptionObserver)
 
+
+
 struct WebrtcCreateSessionDescriptionObserverFunctions {
   void (*on_destruction)(void*);
   void (*on_success)(void*, WebrtcSessionDescriptionInterface*);
@@ -53,6 +55,9 @@ RTC_EXPORT WebrtcSessionDescriptionInterface* webrtcCreateSessionDescription(
     enum WebrtcSdpType type,
     const char* sdp,
     WebrtcSdpParseError** error);
+
+RTC_EXPORT void webrtcDataChannelObserverRelease(
+    const WebrtcDataChannelObserver* observer);
 
 RTC_EXPORT void webrtcCreateSessionDescriptionObserverRelease(
     const WebrtcCreateSessionDescriptionObserver* observer);
