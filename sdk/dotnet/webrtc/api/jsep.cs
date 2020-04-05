@@ -118,10 +118,6 @@ namespace Pixiv.Webrtc
         private static extern IntPtr webrtcDataChannelUnRegisterObserver(
             IntPtr context
         );
-        public void Unregister()
-        {
-            webrtcDataChannelUnRegisterObserver(Ptr);
-        }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void DestructionHandler(IntPtr context);
@@ -168,7 +164,8 @@ namespace Pixiv.Webrtc
 
         private protected override void FreePtr()
         {
-            Interop.DataChannelObserver.Release(Ptr);
+            webrtcDataChannelUnRegisterObserver(Ptr);
+            Interop.DataChannelObserver.Delete(Ptr);
         }
 
         [MonoPInvokeCallback(typeof(DestructionHandler))]
@@ -439,8 +436,8 @@ namespace Pixiv.Webrtc.Interop
 
     public static class DataChannelObserver
     {
-        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDataChannelObserverRelease")]
-        public static extern void Release(IntPtr ptr);
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDataChannelObserverDelete")]
+        public static extern void Delete(IntPtr ptr);
     }
 
     public static class SessionDescriptionInterface
