@@ -165,7 +165,7 @@ namespace Pixiv.Webrtc
         private protected override void FreePtr()
         {
             webrtcDataChannelUnRegisterObserver(Ptr);
-            Interop.DataChannelObserver.Delete(Ptr);
+            DataChannel.Dispose();
         }
 
         [MonoPInvokeCallback(typeof(DestructionHandler))]

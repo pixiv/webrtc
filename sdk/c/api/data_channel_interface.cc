@@ -96,8 +96,3 @@ RTC_EXPORT extern "C" void webrtcDataChannelUnregisterObserver(
       auto chan = rtc::ToCplusplus(channel);
       chan->UnregisterObserver();
 }
-
-extern "C" void webrtcDataChannelObserverDelete(
-    const WebrtcDataChannelObserver* observer) {
-      delete rtc::ToCplusplus(observer);
-}
