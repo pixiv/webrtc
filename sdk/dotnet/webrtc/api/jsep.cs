@@ -114,6 +114,15 @@ namespace Pixiv.Webrtc
             IntPtr functions
         );
 
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcDataChannelUnRegisterObserver(
+            IntPtr context
+        );
+        public void Unregister()
+        {
+            webrtcDataChannelUnRegisterObserver(Ptr);
+        }
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void DestructionHandler(IntPtr context);
 

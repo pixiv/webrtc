@@ -101,12 +101,3 @@ extern "C" void webrtcDataChannelObserverRelease(
     const WebrtcDataChannelObserver* observer) {
   rtc::ToCplusplus(observer)->Release();
 }
-
-namespace Pixiv.Webrtc.Interop
-{
-    public static class DataChannelObserver
-    {
-        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDataChannelObserverRelease")]
-        public static extern void Release(IntPtr ptr);
-    }
-}
