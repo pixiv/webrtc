@@ -166,7 +166,7 @@ namespace Pixiv.Webrtc
         private delegate void IceCandidatesRemovedHandler(
             IntPtr context,
             IntPtr data,
-            [MarshalAs(UnmanagedType.SysUInt)] int size
+            [MarshalAs(UnmanagedType.U4)] Int32 size
         );
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -180,7 +180,7 @@ namespace Pixiv.Webrtc
             IntPtr context,
             IntPtr receiver,
             IntPtr data,
-            [MarshalAs(UnmanagedType.SysUInt)] int size
+            [MarshalAs(UnmanagedType.U4)] Int32 size
         );
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -315,7 +315,7 @@ namespace Pixiv.Webrtc
         private static void OnIceCandidatesRemoved(
             IntPtr context,
             IntPtr data,
-            int size)
+            [MarshalAs(UnmanagedType.U4)] Int32 size)
         {
             var sizeOfIntPtr = Marshal.SizeOf<IntPtr>();
             var candidates = new DisposableCandidate[size];
@@ -345,7 +345,7 @@ namespace Pixiv.Webrtc
             IntPtr context,
             IntPtr receiver,
             IntPtr data,
-            int size)
+            [MarshalAs(UnmanagedType.U4)] Int32 size)
         {
             var sizeOfIntPtr = Marshal.SizeOf<IntPtr>();
             var streams = new DisposableMediaStreamInterface[size];
@@ -394,10 +394,17 @@ namespace Pixiv.Webrtc
         public DisposablePeerConnectionObserver(
             IManagedPeerConnectionObserver managed)
         {
-            Ptr = webrtcNewPeerConnectionObserver(
-                (IntPtr)GCHandle.Alloc(managed),
-                s_functions.Ptr
-            );
+            try
+            {
+                Ptr = webrtcNewPeerConnectionObserver(
+                    (IntPtr)GCHandle.Alloc(managed),
+                    s_functions.Ptr
+                );
+            }
+            catch(Exception ex)
+            {
+                var m = ex.Message;
+            }
         }
 
         private protected override void FreePtr()
@@ -849,7 +856,7 @@ namespace Pixiv.Webrtc
             IntPtr connection,
             IntPtr track,
             [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] string[] data,
-            int size
+            [MarshalAs(UnmanagedType.U4)] Int32 size
         );
 
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]

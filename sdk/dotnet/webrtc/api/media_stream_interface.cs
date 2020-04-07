@@ -347,8 +347,8 @@ namespace Pixiv.Webrtc
             IntPtr audioData,
             int bitsPerSample,
             int sampleRate,
-            int numberOfChannels,
-            int numberOfFrames)
+            [MarshalAs(UnmanagedType.U4)] Int32 numberOfChannels,
+            [MarshalAs(UnmanagedType.U4)] Int32 numberOfFrames)
         {
             webrtcAudioTrackSinkInterfaceOnData(
                 sink.Ptr,
