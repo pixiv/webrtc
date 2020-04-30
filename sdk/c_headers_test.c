@@ -5,9 +5,6 @@
  *  found in the LICENSE.pixiv file in the root of the source tree.
  */
 
-#include "sdk/c/api/task_queue/queued_task.h"
-#include "sdk/c/api/task_queue/task_queue_base.h"
-#include "sdk/c/api/task_queue/task_queue_factory.h"
 #include "sdk/c/api/video/video_buffer.h"
 #include "sdk/c/api/video/video_frame.h"
 #include "sdk/c/api/video/video_rotation.h"
