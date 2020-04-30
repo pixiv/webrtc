@@ -353,6 +353,11 @@ namespace Pixiv.Webrtc
             UIntPtr castedNumberOfChannels;
             UIntPtr castedNumberOfFrames;
 
+            if (sink == null)
+            {
+                throw new ArgumentNullException(nameof(sink));
+            }
+
             try
             {
                 castedNumberOfChannels = (UIntPtr)numberOfChannels;
@@ -405,6 +410,16 @@ namespace Pixiv.Webrtc
             this IAudioTrackInterface track,
             IAudioTrackSinkInterface sink)
         {
+            if (track == null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
+            if (sink == null)
+            {
+                throw new ArgumentNullException(nameof(sink));
+            }
+
             webrtcAudioTrackInterfaceAddSink(track.Ptr, sink.Ptr);
         }
     }
@@ -418,6 +433,11 @@ namespace Pixiv.Webrtc
 
         public static string ID(this IMediaStreamTrackInterface track)
         {
+            if (track == null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
             return Rtc.Interop.String.MoveToString(
                 webrtcMediaStreamTrackInterfaceId(track.Ptr));
         }
@@ -453,6 +473,21 @@ namespace Pixiv.Webrtc
             IVideoSinkInterface sink,
             VideoSinkWants wants)
         {
+            if (track == null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
+            if (sink == null)
+            {
+                throw new ArgumentNullException(nameof(sink));
+            }
+
+            if (wants == null)
+            {
+                throw new ArgumentNullException(nameof(wants));
+            }
+
             var unmanagedWants = new RtcVideoSinkWants();
 
             unmanagedWants.RotationApplied = wants.RotationApplied;

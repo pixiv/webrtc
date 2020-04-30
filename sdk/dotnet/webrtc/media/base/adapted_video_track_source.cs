@@ -152,6 +152,11 @@ namespace Pixiv.Rtc
 
         protected void OnFrame(IVideoFrame frame)
         {
+            if (frame == null)
+            {
+                throw new ArgumentNullException(nameof(frame));
+            }
+
             rtcAdaptedVideoTrackSourceOnFrame(Ptr, frame.Ptr);
         }
 

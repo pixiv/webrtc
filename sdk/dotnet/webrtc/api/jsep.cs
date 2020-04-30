@@ -248,6 +248,11 @@ namespace Pixiv.Webrtc
         public static bool TryToString(
             this IIceCandidateInterface candidate, out string s)
         {
+            if (candidate == null)
+            {
+                throw new ArgumentNullException(nameof(candidate));
+            }
+
             var result = webrtcIceCandidateInterfaceToString(
                 candidate.Ptr, out var webrtcString);
 
@@ -291,6 +296,11 @@ namespace Pixiv.Webrtc
             this ISessionDescriptionInterface desc,
             out string s)
         {
+            if (desc == null)
+            {
+                throw new ArgumentNullException(nameof(desc));
+            }
+
             var result = webrtcSessionDescriptionInterfaceToString(
                 desc.Ptr, out var webrtcString);
 

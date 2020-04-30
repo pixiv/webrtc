@@ -535,7 +535,32 @@ namespace Pixiv.Webrtc
             PeerConnectionInterface.RtcConfiguration configuration,
             PeerConnectionDependencies dependencies)
         {
-            var servers = new WebrtcIceServer[configuration.Servers.Length];
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
+            if (configuration.Servers == null)
+            {
+                throw new ArgumentException("Servers property is null", nameof(configuration));
+            }
+
+            if (configuration.Certificates == null)
+            {
+                throw new ArgumentException("Certificates property is null", nameof(configuration));
+            }
+
+            if (dependencies == null)
+            {
+                throw new ArgumentNullException(nameof(dependencies));
+            }
+
+            var servers = new WebrtcIceServer[configuration.Servers.LongLength];
             var sizeOfPtr = Marshal.SizeOf<IntPtr>();
             var unmanagedConfiguration = new WebrtcRTCConfiguration();
             var unmanagedDependencies = new WebrtcPeerConnectionDependencies();
@@ -579,30 +604,40 @@ namespace Pixiv.Webrtc
 
             var serversHandle = GCHandle.Alloc(servers, GCHandleType.Pinned);
 
-            for (var index = 0; index < configuration.Servers.Length; index++)
-            {
-                var server = configuration.Servers[index];
-                ref var unmanagedServer = ref servers[index];
-
-                unmanagedServer.UrlsSize = new UIntPtr((uint)server.Urls.Length);
-                unmanagedServer.TlsCertPolicy = server.TlsCertPolicy;
-                unmanagedServer.TlsAlpnProtocolsSize = new UIntPtr((uint)server.TlsAlpnProtocols.Length);
-                unmanagedServer.TlsEllipticCurvesSize = new UIntPtr((uint)server.TlsEllipticCurves.Length);
-
-                unmanagedServer.Uri = Marshal.StringToHGlobalAnsi(server.Uri);
-                unmanagedServer.Urls = StringArrayToHGlobalAnsiArrayPtr(server.Urls);
-                unmanagedServer.Username = Marshal.StringToHGlobalAnsi(server.Username);
-                unmanagedServer.Password = Marshal.StringToHGlobalAnsi(server.Password);
-                unmanagedServer.Hostname = Marshal.StringToHGlobalAnsi(server.Hostname);
-                unmanagedServer.TlsAlpnProtocols = StringArrayToHGlobalAnsiArrayPtr(server.TlsAlpnProtocols);
-                unmanagedServer.TlsEllipticCurves = StringArrayToHGlobalAnsiArrayPtr(server.TlsEllipticCurves);
-            }
-
             var certificatesCursor = Marshal.AllocHGlobal(sizeOfPtr * configuration.Certificates.Length);
             unmanagedConfiguration.Certificates = certificatesCursor;
 
             try
             {
+                for (var index = 0; index < configuration.Servers.Length; index++)
+                {
+                    var server = configuration.Servers[index];
+                    ref var unmanagedServer = ref servers[index];
+
+                    if (server.Urls == null)
+                    {
+                        throw new ArgumentException("Urls property of an element of Server property is null", nameof(configuration));
+                    }
+
+                    if (server.TlsAlpnProtocols == null)
+                    {
+                        throw new ArgumentException("TlsAlpnProtocols property of an element of Server property is null", nameof(configuration));
+                    }
+
+                    unmanagedServer.UrlsSize = new UIntPtr((ulong)server.Urls.LongLength);
+                    unmanagedServer.TlsCertPolicy = server.TlsCertPolicy;
+                    unmanagedServer.TlsAlpnProtocolsSize = new UIntPtr((uint)server.TlsAlpnProtocols.Length);
+                    unmanagedServer.TlsEllipticCurvesSize = new UIntPtr((uint)server.TlsEllipticCurves.Length);
+
+                    unmanagedServer.Uri = Marshal.StringToHGlobalAnsi(server.Uri);
+                    unmanagedServer.Urls = StringArrayToHGlobalAnsiArrayPtr(server.Urls);
+                    unmanagedServer.Username = Marshal.StringToHGlobalAnsi(server.Username);
+                    unmanagedServer.Password = Marshal.StringToHGlobalAnsi(server.Password);
+                    unmanagedServer.Hostname = Marshal.StringToHGlobalAnsi(server.Hostname);
+                    unmanagedServer.TlsAlpnProtocols = StringArrayToHGlobalAnsiArrayPtr(server.TlsAlpnProtocols);
+                    unmanagedServer.TlsEllipticCurves = StringArrayToHGlobalAnsiArrayPtr(server.TlsEllipticCurves);
+                }
+
                 if (dependencies.Allocator != null)
                 {
                     unmanagedDependencies.Allocator = dependencies.Allocator.Ptr;
@@ -637,6 +672,11 @@ namespace Pixiv.Webrtc
 
                 foreach (var certificate in configuration.Certificates)
                 {
+                    if (certificate == null)
+                    {
+                        throw new ArgumentException("An element of Certificates property is null", nameof(configuration));
+                    }
+
                     Marshal.WriteIntPtr(certificatesCursor, certificate.Ptr);
                     certificatesCursor += sizeOfPtr;
                 }
@@ -656,25 +696,49 @@ namespace Pixiv.Webrtc
                     var server = configuration.Servers[index];
                     ref var unmanagedServer = ref servers[index];
 
-                    FreeHGlobalAnsiArrayPtr(
-                        unmanagedServer.TlsEllipticCurves,
-                        server.TlsEllipticCurves
-                    );
+                    if (unmanagedServer.TlsEllipticCurves != IntPtr.Zero)
+                    {
+                        FreeHGlobalAnsiArrayPtr(
+                            unmanagedServer.TlsEllipticCurves,
+                            server.TlsEllipticCurves
+                        );
+                    }
 
-                    FreeHGlobalAnsiArrayPtr(
-                        unmanagedServer.TlsAlpnProtocols,
-                        server.TlsAlpnProtocols
-                    );
+                    if (unmanagedServer.TlsAlpnProtocols != IntPtr.Zero)
+                    {
+                        FreeHGlobalAnsiArrayPtr(
+                            unmanagedServer.TlsAlpnProtocols,
+                            server.TlsAlpnProtocols
+                        );
+                    }
 
-                    FreeHGlobalAnsiArrayPtr(
-                        unmanagedServer.Urls,
-                        server.Urls
-                    );
+                    if (unmanagedServer.Urls != IntPtr.Zero)
+                    {
+                        FreeHGlobalAnsiArrayPtr(
+                            unmanagedServer.Urls,
+                            server.Urls
+                        );
+                    }
 
-                    Marshal.FreeHGlobal(unmanagedServer.Hostname);
-                    Marshal.FreeHGlobal(unmanagedServer.Password);
-                    Marshal.FreeHGlobal(unmanagedServer.Username);
-                    Marshal.FreeHGlobal(unmanagedServer.Uri);
+                    if (unmanagedServer.Hostname != IntPtr.Zero)
+                    {
+                        Marshal.FreeHGlobal(unmanagedServer.Hostname);
+                    }
+
+                    if (unmanagedServer.Password != IntPtr.Zero)
+                    {
+                        Marshal.FreeHGlobal(unmanagedServer.Password);
+                    }
+
+                    if (unmanagedServer.Username != IntPtr.Zero)
+                    {
+                        Marshal.FreeHGlobal(unmanagedServer.Username);
+                    }
+
+                    if (unmanagedServer.Uri != null)
+                    {
+                        Marshal.FreeHGlobal(unmanagedServer.Uri);
+                    }
                 }
 
                 Marshal.FreeHGlobal(unmanagedConfiguration.Certificates);
@@ -687,6 +751,16 @@ namespace Pixiv.Webrtc
             string label,
             IAudioSourceInterface source)
         {
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             return new DisposableAudioTrackInterface(
                 Interop.AudioTrackInterface.ToWebrtcMediaStreamTrackInterface(
                     webrtcPeerConnectionFactoryInterfaceCreateAudioTrack(
@@ -703,6 +777,16 @@ namespace Pixiv.Webrtc
             string label,
             IVideoTrackSourceInterface source)
         {
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             return new DisposableVideoTrackInterface(
                 Interop.VideoTrackInterface.ToWebrtcMediaStreamTrackInterface(
                     webrtcPeerConnectionFactoryInterfaceCreateVideoTrack(
@@ -900,6 +984,21 @@ namespace Pixiv.Webrtc
         {
             RtcError error;
 
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
+            if (track == null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
+            if (streamIds == null)
+            {
+                throw new ArgumentNullException(nameof(streamIds));
+            }
+
             var size = new UIntPtr((ulong)streamIds.LongLength);
             var result = webrtcPeerConnectionInterfaceAddTrack(
                 connection.Ptr, track.Ptr, streamIds, size);
@@ -921,6 +1020,11 @@ namespace Pixiv.Webrtc
 
         public static void Close(this IPeerConnectionInterface connection)
         {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
             webrtcPeerConnectionInterfaceClose(connection.Ptr);
         }
 
@@ -929,6 +1033,11 @@ namespace Pixiv.Webrtc
             ICreateSessionDescriptionObserver observer,
             PeerConnectionInterface.RtcOfferAnswerOptions options)
         {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
             webrtcPeerConnectionInterfaceCreateAnswer(
                 connection.Ptr, observer.Ptr, options);
         }
@@ -938,6 +1047,16 @@ namespace Pixiv.Webrtc
             ICreateSessionDescriptionObserver observer,
             PeerConnectionInterface.RtcOfferAnswerOptions options)
         {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
+            if (observer == null)
+            {
+                throw new ArgumentNullException(nameof(observer));
+            }
+
             webrtcPeerConnectionInterfaceCreateOffer(
                 connection.Ptr, observer.Ptr, options);
         }
@@ -946,6 +1065,11 @@ namespace Pixiv.Webrtc
             this IPeerConnectionInterface connection,
             bool recording)
         {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
             webrtcPeerConnectionInterfaceSetAudioRecording(
                 connection.Ptr,
                 recording
@@ -957,6 +1081,21 @@ namespace Pixiv.Webrtc
             ISetSessionDescriptionObserver observer,
             IDisposableSessionDescriptionInterface desc)
         {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
+            if (observer == null)
+            {
+                throw new ArgumentNullException(nameof(observer));
+            }
+
+            if (desc == null)
+            {
+                throw new ArgumentNullException(nameof(desc));
+            }
+
             webrtcPeerConnectionInterfaceSetLocalDescription(
                 connection.Ptr, observer.Ptr, desc.Ptr);
 
@@ -968,6 +1107,21 @@ namespace Pixiv.Webrtc
             ISetSessionDescriptionObserver observer,
             IDisposableSessionDescriptionInterface desc)
         {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
+            if (observer == null)
+            {
+                throw new ArgumentNullException(nameof(observer));
+            }
+
+            if (desc == null)
+            {
+                throw new ArgumentNullException(nameof(desc));
+            }
+
             webrtcPeerConnectionInterfaceSetRemoteDescription(
                 connection.Ptr, observer.Ptr, desc.Ptr);
 

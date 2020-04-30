@@ -80,6 +80,11 @@ namespace Pixiv.Webrtc
         public static DisposableAudioProcessing Create(
             this IAudioProcessingBuilder builder)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             return new DisposableAudioProcessing(
                 webrtcAudioProcessingBuilderCreate(builder.Ptr)
             );

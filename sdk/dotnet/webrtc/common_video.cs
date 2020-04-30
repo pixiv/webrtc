@@ -58,6 +58,11 @@ namespace Pixiv.Webrtc
             int dstSampleSize,
             IntPtr dstFrame)
         {
+            if (srcFrame == null)
+            {
+                throw new ArgumentNullException(nameof(srcFrame));
+            }
+
             return webrtcConvertFromI420(
                 srcFrame.Ptr,
                 dstVideoType,
@@ -75,6 +80,11 @@ namespace Pixiv.Webrtc
             int cropX,
             int cropY)
         {
+            if (dstFrame == null)
+            {
+                throw new ArgumentNullException(nameof(dstFrame));
+            }
+
             return webrtcConvertToI420(
                 srcVideoType,
                 srcSampleSize,

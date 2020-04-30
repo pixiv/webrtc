@@ -224,6 +224,11 @@ namespace Pixiv.Rtc
 
         public static void Quit(this IMessageQueue queue)
         {
+            if (queue == null)
+            {
+                throw new ArgumentNullException(nameof(queue));
+            }
+
             rtcMessageQueueQuit(queue.Ptr);
         }
     }
@@ -238,11 +243,21 @@ namespace Pixiv.Rtc
 
         public static void Run(this IThread thread)
         {
+            if (thread == null)
+            {
+                throw new ArgumentNullException(nameof(thread));
+            }
+
             rtcThreadRun(thread.Ptr);
         }
 
         public static void Start(this IThread thread)
         {
+            if (thread == null)
+            {
+                throw new ArgumentNullException(nameof(thread));
+            }
+
             rtcThreadStart(thread.Ptr);
         }
     }
@@ -261,11 +276,21 @@ namespace Pixiv.Rtc
 
         public static void UnwrapCurrentThread(this IThreadManager manager)
         {
+            if (manager == null)
+            {
+                throw new ArgumentNullException(nameof(manager));
+            }
+
             rtcThreadManagerUnwrapCurrentThread(manager.Ptr);
         }
 
         public static Thread WrapCurrentThread(this IThreadManager manager)
         {
+            if (manager == null)
+            {
+                throw new ArgumentNullException(nameof(manager));
+            }
+
             return new Thread(rtcThreadManagerWrapCurrentThread(manager.Ptr));
         }
     }

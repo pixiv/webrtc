@@ -65,6 +65,11 @@ namespace Pixiv.Webrtc
         public static DisposableVideoFrame MoveFrame(
             this IVideoBufferInterface buffer)
         {
+            if (buffer == null)
+            {
+                throw new ArgumentNullException(nameof(buffer));
+            }
+
             var frame = webrtcVideoBufferInterfaceMoveFrame(buffer.Ptr);
 
             return frame == IntPtr.Zero ?
