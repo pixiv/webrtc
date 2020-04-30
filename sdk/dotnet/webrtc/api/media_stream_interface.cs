@@ -338,8 +338,8 @@ namespace Pixiv.Webrtc
             IntPtr audioData,
             int bitsPerSample,
             int sampleRate,
-            [MarshalAs(UnmanagedType.SysUInt)] int numberOfChannels,
-            [MarshalAs(UnmanagedType.SysUInt)] int numberOfFrames
+            UIntPtr numberOfChannels,
+            UIntPtr numberOfFrames
         );
 
         public static void OnData(
@@ -350,13 +350,34 @@ namespace Pixiv.Webrtc
             int numberOfChannels,
             int numberOfFrames)
         {
+            UIntPtr castedNumberOfChannels;
+            UIntPtr castedNumberOfFrames;
+
+            try
+            {
+                castedNumberOfChannels = (UIntPtr)numberOfChannels;
+            }
+            catch (OverflowException inner)
+            {
+                throw new ArgumentOutOfRangeException(nameof(numberOfChannels), inner);
+            }
+
+            try
+            {
+                castedNumberOfFrames = (UIntPtr)numberOfFrames;
+            }
+            catch (OverflowException inner)
+            {
+                throw new ArgumentOutOfRangeException(nameof(castedNumberOfFrames), inner);
+            }
+
             webrtcAudioTrackSinkInterfaceOnData(
                 sink.Ptr,
                 audioData,
                 bitsPerSample,
                 sampleRate,
-                numberOfChannels,
-                numberOfFrames
+                castedNumberOfChannels,
+                castedNumberOfFrames
             );
         }
     }
