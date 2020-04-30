@@ -681,13 +681,16 @@ namespace Pixiv.Webrtc
                     certificatesCursor += sizeOfPtr;
                 }
 
-                return new DisposablePeerConnectionInterface(
-                    webrtcPeerConnectionFactoryInterfaceCreatePeerConnection(
-                        factory.Ptr,
-                        unmanagedConfiguration,
-                        unmanagedDependencies
-                    )
+                var connection = webrtcPeerConnectionFactoryInterfaceCreatePeerConnection(
+                    factory.Ptr,
+                    unmanagedConfiguration,
+                    unmanagedDependencies
                 );
+
+                GC.KeepAlive(factory);
+                GC.KeepAlive(configuration);
+
+                return new DisposablePeerConnectionInterface(connection);
             }
             finally
             {
@@ -761,13 +764,18 @@ namespace Pixiv.Webrtc
                 throw new ArgumentNullException(nameof(source));
             }
 
+            var track = webrtcPeerConnectionFactoryInterfaceCreateAudioTrack(
+                factory.Ptr,
+                label,
+                source.Ptr
+            );
+
+            GC.KeepAlive(factory);
+            GC.KeepAlive(source);
+
             return new DisposableAudioTrackInterface(
                 Interop.AudioTrackInterface.ToWebrtcMediaStreamTrackInterface(
-                    webrtcPeerConnectionFactoryInterfaceCreateAudioTrack(
-                        factory.Ptr,
-                        label,
-                        source.Ptr
-                    )
+                    track
                 )
             );
         }
@@ -787,13 +795,18 @@ namespace Pixiv.Webrtc
                 throw new ArgumentNullException(nameof(source));
             }
 
+            var track = webrtcPeerConnectionFactoryInterfaceCreateVideoTrack(
+                factory.Ptr,
+                label,
+                source.Ptr
+            );
+
+            GC.KeepAlive(factory);
+            GC.KeepAlive(source);
+
             return new DisposableVideoTrackInterface(
                 Interop.VideoTrackInterface.ToWebrtcMediaStreamTrackInterface(
-                    webrtcPeerConnectionFactoryInterfaceCreateVideoTrack(
-                        factory.Ptr,
-                        label,
-                        source.Ptr
-                    )
+                    track
                 )
             );
         }
@@ -1003,6 +1016,9 @@ namespace Pixiv.Webrtc
             var result = webrtcPeerConnectionInterfaceAddTrack(
                 connection.Ptr, track.Ptr, streamIds, size);
 
+            GC.KeepAlive(connection);
+            GC.KeepAlive(track);
+
             try
             {
                 error = new RtcError(result.Error);
@@ -1026,6 +1042,7 @@ namespace Pixiv.Webrtc
             }
 
             webrtcPeerConnectionInterfaceClose(connection.Ptr);
+            GC.KeepAlive(connection);
         }
 
         public static void CreateAnswer(
@@ -1040,6 +1057,9 @@ namespace Pixiv.Webrtc
 
             webrtcPeerConnectionInterfaceCreateAnswer(
                 connection.Ptr, observer.Ptr, options);
+
+            GC.KeepAlive(connection);
+            GC.KeepAlive(observer);
         }
 
         public static void CreateOffer(
@@ -1059,6 +1079,9 @@ namespace Pixiv.Webrtc
 
             webrtcPeerConnectionInterfaceCreateOffer(
                 connection.Ptr, observer.Ptr, options);
+
+            GC.KeepAlive(connection);
+            GC.KeepAlive(observer);
         }
 
         public static void SetAudioRecording(
@@ -1074,6 +1097,8 @@ namespace Pixiv.Webrtc
                 connection.Ptr,
                 recording
             );
+
+            GC.KeepAlive(connection);
         }
 
         public static void SetLocalDescription(
@@ -1099,6 +1124,8 @@ namespace Pixiv.Webrtc
             webrtcPeerConnectionInterfaceSetLocalDescription(
                 connection.Ptr, observer.Ptr, desc.Ptr);
 
+            GC.KeepAlive(connection);
+            GC.KeepAlive(observer);
             desc.ReleasePtr();
         }
 
@@ -1125,6 +1152,8 @@ namespace Pixiv.Webrtc
             webrtcPeerConnectionInterfaceSetRemoteDescription(
                 connection.Ptr, observer.Ptr, desc.Ptr);
 
+            GC.KeepAlive(connection);
+            GC.KeepAlive(observer);
             desc.ReleasePtr();
         }
     }

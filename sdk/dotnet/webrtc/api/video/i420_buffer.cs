@@ -105,6 +105,9 @@ namespace Pixiv.Webrtc
             }
 
             webrtcI420BufferScaleFrom(dest.Ptr, src.Ptr);
+
+            GC.KeepAlive(dest);
+            GC.KeepAlive(src);
         }
     }
 }

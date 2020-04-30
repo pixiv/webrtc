@@ -384,6 +384,8 @@ namespace Pixiv.Webrtc
                 castedNumberOfChannels,
                 castedNumberOfFrames
             );
+
+            GC.KeepAlive(sink);
         }
     }
 
@@ -421,6 +423,8 @@ namespace Pixiv.Webrtc
             }
 
             webrtcAudioTrackInterfaceAddSink(track.Ptr, sink.Ptr);
+            GC.KeepAlive(track);
+            GC.KeepAlive(sink);
         }
     }
 
@@ -438,8 +442,10 @@ namespace Pixiv.Webrtc
                 throw new ArgumentNullException(nameof(track));
             }
 
-            return Rtc.Interop.String.MoveToString(
-                webrtcMediaStreamTrackInterfaceId(track.Ptr));
+            var id = webrtcMediaStreamTrackInterfaceId(track.Ptr);
+            GC.KeepAlive(track);
+
+            return Rtc.Interop.String.MoveToString(id);
         }
     }
 
@@ -506,6 +512,9 @@ namespace Pixiv.Webrtc
                 sink.Ptr,
                 unmanagedWants
             );
+
+            GC.KeepAlive(track);
+            GC.KeepAlive(sink);
         }
     }
 }

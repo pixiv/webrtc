@@ -64,7 +64,10 @@ namespace Pixiv.Webrtc
                 throw new ArgumentNullException(nameof(frame));
             }
 
-            return webrtcVideoFrameWidth(frame.Ptr);
+            var width = webrtcVideoFrameWidth(frame.Ptr);
+            GC.KeepAlive(frame);
+
+            return width;
         }
 
         public static int Height(this IReadOnlyVideoFrame frame)
@@ -74,7 +77,10 @@ namespace Pixiv.Webrtc
                 throw new ArgumentNullException(nameof(frame));
             }
 
-            return webrtcVideoFrameHeight(frame.Ptr);
+            var height = webrtcVideoFrameHeight(frame.Ptr);
+            GC.KeepAlive(frame);
+
+            return height;
         }
 
         public static uint Size(this IReadOnlyVideoFrame frame)
@@ -84,8 +90,11 @@ namespace Pixiv.Webrtc
                 throw new ArgumentNullException(nameof(frame));
             }
 
-            return (uint)webrtcVideoFrameWidth(frame.Ptr) *
-                (uint)webrtcVideoFrameHeight(frame.Ptr);
+            var width = (uint)webrtcVideoFrameWidth(frame.Ptr);
+            var height = (uint)webrtcVideoFrameHeight(frame.Ptr);
+            GC.KeepAlive(frame);
+
+            return width * height;
         }
     }
 
@@ -188,8 +197,10 @@ namespace Pixiv.Webrtc
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return new DisposableVideoFrame(
-                webrtcVideoFrameBuilderBuild(builder.Ptr));
+            var frame = webrtcVideoFrameBuilderBuild(builder.Ptr);
+            GC.KeepAlive(builder);
+
+            return new DisposableVideoFrame(frame);
         }
 
         public static void SetVideoFrameBuffer(
@@ -207,6 +218,9 @@ namespace Pixiv.Webrtc
 
             webrtcVideoFrameBuilder_set_video_frame_buffer(
                 builder.Ptr, value.Ptr);
+
+            GC.KeepAlive(builder);
+            GC.KeepAlive(value);
         }
 
         public static void SetTimestampMs(
@@ -218,6 +232,7 @@ namespace Pixiv.Webrtc
             }
 
             webrtcVideoFrameBuilder_set_timestamp_ms(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
 
         public static void SetTimstampRtp(
@@ -229,6 +244,7 @@ namespace Pixiv.Webrtc
             }
 
             webrtcVideoFrameBuilder_set_timestamp_rtp(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
 
         public static void SetNtpTimeMs(
@@ -240,6 +256,7 @@ namespace Pixiv.Webrtc
             }
 
             webrtcVideoFrameBuilder_set_ntp_time_ms(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
 
         public static void SetRotation(
@@ -251,6 +268,7 @@ namespace Pixiv.Webrtc
             }
 
             webrtcVideoFrameBuilder_set_rotation(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
 
         public static void SetColorSpace(
@@ -262,6 +280,7 @@ namespace Pixiv.Webrtc
             }
 
             webrtcVideoFrameBuilder_set_color_space(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
 
         public static void SetID(
@@ -273,6 +292,7 @@ namespace Pixiv.Webrtc
             }
 
             webrtcVideoFrameBuilder_set_id(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
     }
 }

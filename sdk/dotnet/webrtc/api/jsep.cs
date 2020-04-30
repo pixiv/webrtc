@@ -256,6 +256,7 @@ namespace Pixiv.Webrtc
             var result = webrtcIceCandidateInterfaceToString(
                 candidate.Ptr, out var webrtcString);
 
+            GC.KeepAlive(candidate);
             s = Rtc.Interop.String.MoveToString(webrtcString);
 
             return result;
@@ -304,6 +305,7 @@ namespace Pixiv.Webrtc
             var result = webrtcSessionDescriptionInterfaceToString(
                 desc.Ptr, out var webrtcString);
 
+            GC.KeepAlive(desc);
             s = Rtc.Interop.String.MoveToString(webrtcString);
 
             return result;

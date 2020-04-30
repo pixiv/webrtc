@@ -158,6 +158,7 @@ namespace Pixiv.Rtc
             }
 
             rtcAdaptedVideoTrackSourceOnFrame(Ptr, frame.Ptr);
+            GC.KeepAlive(frame);
         }
 
         protected bool AdaptFrame(

@@ -51,8 +51,10 @@ namespace Pixiv.Webrtc
                 throw new ArgumentNullException(nameof(receiver));
             }
 
-            return Interop.MediaStreamTrackInterface.WrapDisposable(
-                webrtcRtpReceiverInterfaceTrack(receiver.Ptr));
+            var track = webrtcRtpReceiverInterfaceTrack(receiver.Ptr);
+            GC.KeepAlive(receiver);
+
+            return Interop.MediaStreamTrackInterface.WrapDisposable(track);
         }
     }
 }

@@ -71,6 +71,7 @@ namespace Pixiv.Webrtc
             }
 
             var frame = webrtcVideoBufferInterfaceMoveFrame(buffer.Ptr);
+            GC.KeepAlive(buffer);
 
             return frame == IntPtr.Zero ?
                 null : new DisposableVideoFrame(frame);
