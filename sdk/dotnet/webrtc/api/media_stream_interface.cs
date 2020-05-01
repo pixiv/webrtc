@@ -308,8 +308,8 @@ namespace Pixiv.Webrtc
             IntPtr audioData,
             int bitsPerSample,
             int sampleRate,
-            int numberOfChannels,
-            int numberOfFrame
+            UIntPtr numberOfChannels,
+            UIntPtr numberOfFrames
         );
 
         public IntPtr Ptr { get; }
@@ -347,16 +347,35 @@ namespace Pixiv.Webrtc
             IntPtr audioData,
             int bitsPerSample,
             int sampleRate,
-            [MarshalAs(UnmanagedType.U4)] Int32 numberOfChannels,
-            [MarshalAs(UnmanagedType.U4)] Int32 numberOfFrames)
+            int numberOfChannels,
+            int numberOfFrames)
         {
+            UIntPtr castedNumberOfChannels;
+            UIntPtr castedNumberOfFrames;
+            try
+            {
+                castedNumberOfChannels = (UIntPtr)numberOfChannels;
+            }
+            catch (OverflowException inner)
+            {
+                throw new ArgumentOutOfRangeException(nameof(numberOfChannels), inner);
+            }
+
+            try
+            {
+                castedNumberOfFrames = (UIntPtr)numberOfFrames;
+            }
+            catch (OverflowException inner)
+            {
+                throw new ArgumentOutOfRangeException(nameof(castedNumberOfFrames), inner);
+            }
             webrtcAudioTrackSinkInterfaceOnData(
                 sink.Ptr,
                 audioData,
                 bitsPerSample,
                 sampleRate,
-                numberOfChannels,
-                numberOfFrames
+                castedNumberOfChannels,
+                castedNumberOfFrames
             );
         }
     }

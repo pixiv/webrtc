@@ -74,7 +74,7 @@
     </Target>
     <Target Condition="$(ParsibleTargets.Contains(';MacX64;'))" Name="BuildMacX64" DependsOnTargets="BuildExternal">
         <Exec
-            Command="gn gen &quot;--args=is_debug=$(IsDebug) rtc_enable_symbol_export=true target_os=\&quot;mac\&quot; target_cpu=\&quot;x64\&quot;&quot; --root=$(EscapedMSBuildThisFileDirectory)../../.. $(EscapedIntermediateOutputPath)mac_x64"
+            Command="gn gen &quot;--args=is_debug=$(IsDebug) rtc_use_dummy_audio_file_devices=true rtc_enable_symbol_export=true target_os=\&quot;mac\&quot; target_cpu=\&quot;x64\&quot;&quot; --root=$(EscapedMSBuildThisFileDirectory)../../.. $(EscapedIntermediateOutputPath)mac_x64"
             Condition="!Exists('$(IntermediateOutputPath)mac_x64/build.ninja')" />
         <Exec Command="ninja -C $(EscapedIntermediateOutputPath)mac_x64 :jingle_peerconnection_so" />
         <Copy DestinationFiles="$(OutputPath)Runtime/jingle_peerconnection_so.dylib" SourceFiles="$(IntermediateOutputPath)mac_x64/libjingle_peerconnection_so.dylib" />
