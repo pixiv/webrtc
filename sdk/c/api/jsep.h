@@ -16,6 +16,13 @@ enum WebrtcSdpType {
   WEBRTC_SDP_TYPE_ANSWER
 };
 
+enum WebrtcOptionalSdpType {
+  WEBRTC_OPTIONAL_SDP_TYPE_OFFER = WEBRTC_SDP_TYPE_OFFER,
+  WEBRTC_OPTIONAL_SDP_TYPE_PR_ANSWER = WEBRTC_SDP_TYPE_PR_ANSWER,
+  WEBRTC_OPTIONAL_SDP_TYPE_ANSWER = WEBRTC_SDP_TYPE_ANSWER,
+  WEBRTC_OPTIONAL_SDP_TYPE_NULLOPT
+};
+
 #ifdef __cplusplus
 #include "api/jsep.h"
 
@@ -49,6 +56,12 @@ struct WebrtcSetSessionDescriptionObserverFunctions {
   void (*on_failure)(void*, enum WebrtcRTCErrorType, const char*);
 };
 
+RTC_EXPORT WebrtcIceCandidateInterface* webrtcCreateIceCandidate(
+    const char* sdp_mid,
+    int sdp_mline_index,
+    const char* sdp,
+    WebrtcSdpParseError** error);
+
 RTC_EXPORT WebrtcSessionDescriptionInterface* webrtcCreateSessionDescription(
     enum WebrtcSdpType type,
     const char* sdp,
@@ -57,8 +70,17 @@ RTC_EXPORT WebrtcSessionDescriptionInterface* webrtcCreateSessionDescription(
 RTC_EXPORT void webrtcCreateSessionDescriptionObserverRelease(
     const WebrtcCreateSessionDescriptionObserver* observer);
 
+RTC_EXPORT void webrtcDeleteIceCandidateInterface(
+    WebrtcIceCandidateInterface* candidate);
+
 RTC_EXPORT void webrtcDeleteSessionDescriptionInterface(
     WebrtcSessionDescriptionInterface* desc);
+
+RTC_EXPORT RtcString* webrtcIceCandidateInterfaceSdp_mid(
+    const WebrtcIceCandidateInterface* candidate);
+
+RTC_EXPORT int webrtcIceCandidateInterfaceSdp_mline_index(
+    const WebrtcIceCandidateInterface* candidate);
 
 RTC_EXPORT bool webrtcIceCandidateInterfaceToString(
     const WebrtcIceCandidateInterface* candidate,
@@ -73,6 +95,14 @@ RTC_EXPORT WebrtcSetSessionDescriptionObserver*
 webrtcNewSetSessionDescriptionObserver(
     void* context,
     const struct WebrtcSetSessionDescriptionObserverFunctions* functions);
+
+RTC_EXPORT enum WebrtcOptionalSdpType
+webrtcSdpTypeFromString(const char* type_str);
+
+RTC_EXPORT const char* webrtcSdpTypeToString(enum WebrtcSdpType type);
+
+RTC_EXPORT enum WebrtcSdpType webrtcSessionDescriptionInterfaceGetType(
+    const WebrtcSessionDescriptionInterface* desc);
 
 RTC_EXPORT bool webrtcSessionDescriptionInterfaceToString(
     const WebrtcSessionDescriptionInterface* desc,

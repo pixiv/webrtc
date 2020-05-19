@@ -5,6 +5,7 @@
  *  found in the LICENSE.pixiv file in the root of the source tree.
  */
 
+#include <cstdlib>
 #include "api/peer_connection_interface.h"
 #include "sdk/c/api/peer_connection_interface.h"
 
@@ -185,6 +186,11 @@ webrtcPeerConnectionFactoryInterfaceCreatePeerConnection(
       cconfiguration->flags &
       WEBRTC_RTC_CONFIGURATION_FLAG_EXPERIMENT_CPU_LOAD_ESTIMATOR);
 
+  if (cconfiguration->flags & WEBRTC_RTC_CONFIGURATION_FLAG_OVERRIDE_ENABLE_DTLS_SRTP) {
+    auto flag = cconfiguration->flags & WEBRTC_RTC_CONFIGURATION_FLAG_ENABLE_DTLS_SRTP;
+    configuration.enable_dtls_srtp = flag != 0;
+  }
+
   configuration.set_audio_rtcp_report_interval_ms(
       cconfiguration->audio_rtcp_report_interval_ms);
 
@@ -299,6 +305,13 @@ extern "C" void webrtcPeerConnectionFactoryInterfaceRelease(
   rtc::ToCplusplus(factory)->Release();
 }
 
+extern "C" bool webrtcPeerConnectionInterfaceAddIceCandidate(
+    WebrtcPeerConnectionInterface* connection,
+    const WebrtcIceCandidateInterface* candidate) {
+  return rtc::ToCplusplus(connection)->AddIceCandidate(
+      rtc::ToCplusplus(candidate));
+}
+
 extern "C" WebrtcPeerConnectionInterfaceAddTrackResult
 webrtcPeerConnectionInterfaceAddTrack(WebrtcPeerConnectionInterface* connection,
                                       WebrtcMediaStreamTrackInterface* track,
@@ -345,6 +358,11 @@ extern "C" void webrtcPeerConnectionInterfaceCreateOffer(
       ->CreateOffer(rtc::ToCplusplus(observer), *options);
 }
 
+extern "C" WebrtcRtpSenderInterfaces* webrtcPeerConnectionInterfaceGetSenders(
+    const WebrtcPeerConnectionInterface* connection) {
+  return rtc::ToC(new auto(rtc::ToCplusplus(connection)->GetSenders()));
+}
+
 extern "C" void webrtcPeerConnectionInterfaceRelease(
     const WebrtcPeerConnectionInterface* connection) {
   rtc::ToCplusplus(connection)->Release();
@@ -371,4 +389,20 @@ extern "C" void webrtcPeerConnectionInterfaceSetRemoteDescription(
   rtc::ToCplusplus(connection)
       ->SetRemoteDescription(rtc::ToCplusplus(observer),
                              rtc::ToCplusplus(desc));
+}
+
+extern "C" void webrtcRtpSenderInterfacesMove(
+    WebrtcRtpSenderInterfaces* ccplusplus,
+    WebrtcRtpSenderInterface** c) {
+  auto cplusplusRaw = rtc::ToCplusplus(ccplusplus);
+  auto cplusplus = std::unique_ptr<std::vector<rtc::scoped_refptr<webrtc::RtpSenderInterface>>>(cplusplusRaw);
+
+  for (size_t index = 0; index < cplusplus->size(); index++) {
+    c[index] = rtc::ToC((*cplusplus)[index].release());
+  }
+}
+
+extern "C" size_t webrtcRtpSenderInterfacesSize(
+    const WebrtcRtpSenderInterfaces* interfaces) {
+  return rtc::ToCplusplus(interfaces)->size();
 }

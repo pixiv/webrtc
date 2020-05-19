@@ -142,6 +142,22 @@ namespace Pixiv.Webrtc
         }
     }
 
+    public sealed class DisposableIceCandidateInterface :
+        DisposablePtr, IDisposableIceCandidateInterface
+    {
+        IntPtr IIceCandidateInterface.Ptr => Ptr;
+
+        public DisposableIceCandidateInterface(IntPtr ptr)
+        {
+            Ptr = ptr;
+        }
+
+        private protected override void FreePtr()
+        {
+            Interop.IceCandidateInterface.Delete(Ptr);
+        }
+    }
+
     public sealed class DisposableSessionDescriptionInterface :
         DisposablePtr, IDisposableSessionDescriptionInterface
     {
@@ -237,6 +253,30 @@ namespace Pixiv.Webrtc
         }
     }
 
+    public static class IceCandidate
+    {
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcCreateIceCandidate(
+            string sdpMid,
+            int sdpMlineIndex,
+            string sdp,
+            IntPtr error
+        );
+
+        public static DisposableIceCandidateInterface Create(
+            string sdpMid,
+            int sdpMlineIndex,
+            string sdp,
+            IntPtr error)
+        {
+            var ptr = webrtcCreateIceCandidate(
+                sdpMid, sdpMlineIndex, sdp, error);
+
+            return ptr == IntPtr.Zero ?
+                null : new DisposableIceCandidateInterface(ptr);
+        }
+    }
+
     public static class IceCandidateInterfaceExtension
     {
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
@@ -244,6 +284,38 @@ namespace Pixiv.Webrtc
             IntPtr ptr,
             out IntPtr result
         );
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcIceCandidateInterfaceSdp_mid(
+            IntPtr ptr
+        );
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int webrtcIceCandidateInterfaceSdp_mline_index(
+            IntPtr ptr
+        );
+
+        public static string SdpMid(this IIceCandidateInterface candidate)
+        {
+            if (candidate == null)
+            {
+                throw new ArgumentNullException(nameof(candidate));
+            }
+
+            var ptr = webrtcIceCandidateInterfaceSdp_mid(candidate.Ptr);
+            GC.KeepAlive(candidate);
+            return Rtc.Interop.String.MoveToString(ptr);
+        }
+
+        public static int SdpMlineIndex(this IIceCandidateInterface candidate)
+        {
+            if (candidate == null)
+            {
+                throw new ArgumentNullException(nameof(candidate));
+            }
+
+            return webrtcIceCandidateInterfaceSdp_mline_index(candidate.Ptr);
+        }
 
         public static bool TryToString(
             this IIceCandidateInterface candidate, out string s)
@@ -260,6 +332,26 @@ namespace Pixiv.Webrtc
             s = Rtc.Interop.String.MoveToString(webrtcString);
 
             return result;
+        }
+    }
+
+    public static class SdpTypeExtension
+    {
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int webrtcSdpTypeFromString(string typeStr);
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcSdpTypeToString(SdpType type);
+
+        public static SdpType? FromString(string typeStr)
+        {
+            var type = webrtcSdpTypeFromString(typeStr);
+            return type == 3 ? default(SdpType?) : (SdpType)type;
+        }
+
+        public static string ToSdpString(this SdpType type)
+        {
+            return Marshal.PtrToStringAnsi(webrtcSdpTypeToString(type));
         }
     }
 
@@ -287,11 +379,29 @@ namespace Pixiv.Webrtc
     public static class SessionDescriptionInterfaceExtension
     {
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern SdpType webrtcSessionDescriptionInterfaceGetType(
+            IntPtr ptr
+        );
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool webrtcSessionDescriptionInterfaceToString(
             IntPtr ptr,
             out IntPtr result
         );
+
+        public static SdpType GetSdpType(this ISessionDescriptionInterface desc)
+        {
+            if (desc == null)
+            {
+                throw new ArgumentNullException(nameof(desc));
+            }
+
+            var result = webrtcSessionDescriptionInterfaceGetType(desc.Ptr);
+            GC.KeepAlive(desc);
+
+            return result;
+        }
 
         public static bool TryToString(
             this ISessionDescriptionInterface desc,
@@ -319,6 +429,12 @@ namespace Pixiv.Webrtc.Interop
     {
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcCreateSessionDescriptionObserverRelease")]
         public static extern void Release(IntPtr ptr);
+    }
+
+    public static class IceCandidateInterface
+    {
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDeleteIceCandidateInterface")]
+        public static extern void Delete(IntPtr ptr);
     }
 
     public static class SessionDescriptionInterface

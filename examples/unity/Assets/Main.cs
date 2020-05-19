@@ -13,92 +13,26 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(Text))]
-internal sealed class Main : MonoBehaviour
+internal sealed class Sora
 {
     private Connection _connection;
     private const string signalingUri = "";
     private const string channelId = "";
-    private int _sampleRate;
-    private readonly Callbacks _callbacks = new Callbacks();
+    public readonly SoraCallbacks Callbacks = new SoraCallbacks();
 
-#pragma warning disable 0649
-    public Button downstream;
-    public Button terminate;
-    public Button upstream;
-    public RawImage image;
-    public Text text;
-#pragma warning restore 0649
-
-    private System.Collections.IEnumerator UpdateSora()
+    public void Start()
     {
-        while (isActiveAndEnabled)
-        {
-            yield return new WaitForEndOfFrame();
-            _callbacks.UpdateVideoTrackSource();
-        }
+        Stop();
+
+        _connection = Connection.Start(
+            Callbacks.Role,
+            new Uri(signalingUri),
+            channelId,
+            Callbacks
+        );
     }
 
-    private void OnAudioFilterRead(float[] data, int channels)
-    {
-        _callbacks.UpdateAudioTrackSource(data, _sampleRate, channels);
-    }
-
-    private void OnEnable()
-    {
-        image.texture = new Texture2D(1, 1, TextureFormat.RGB24, false);
-        downstream.interactable = true;
-        terminate.interactable = false;
-        upstream.interactable = true;
-        _callbacks.Context = SynchronizationContext.Current;
-        _callbacks.GameObject = gameObject;
-        _sampleRate = AudioSettings.outputSampleRate;
-
-        downstream.onClick.AddListener(() =>
-        {
-            _callbacks.Role = Role.Downstream;
-
-            _connection = Connection.Start(
-                Role.Downstream,
-                new Uri(signalingUri),
-                channelId,
-                _callbacks
-            );
-
-            downstream.interactable = false;
-            terminate.interactable = true;
-            upstream.interactable = false;
-        });
-
-        terminate.onClick.AddListener(() =>
-        {
-            OnDisable();
-
-            downstream.interactable = true;
-            terminate.interactable = false;
-            upstream.interactable = true;
-        });
-
-        upstream.onClick.AddListener(() =>
-        {
-            _callbacks.Role = Role.Upstream;
-
-            _connection = Connection.Start(
-                Role.Upstream,
-                new Uri(signalingUri),
-                channelId,
-                _callbacks
-            );
-
-            downstream.interactable = false;
-            terminate.interactable = true;
-            upstream.interactable = false;
-        });
-
-        StartCoroutine(UpdateSora());
-    }
-
-    private void OnDisable()
+    public void Stop()
     {
         if (_connection == null)
         {
@@ -108,17 +42,74 @@ internal sealed class Main : MonoBehaviour
         _connection.Stop();
         _connection = null;
     }
+}
 
-    private unsafe void Update()
+internal sealed class PeerConnection
+{
+    private CancellationTokenSource _source;
+
+    public readonly PeerConnectionCallbacks Callbacks =
+        new PeerConnectionCallbacks();
+
+    public async void SignIn()
     {
-        text.text = DateTime.Now.ToString();
+        var user = Environment.GetEnvironmentVariable("USERNAME") ?? "user";
+        string host;
 
-        var frame = _callbacks.TryMoveNextVideoFrame();
-        if (frame == null)
+        try
         {
-            return;
+            host = System.Net.Dns.GetHostName();
+        }
+        catch (System.Net.Sockets.SocketException)
+        {
+            host = "host";
         }
 
+        _source = new CancellationTokenSource();
+
+        try
+        {
+            await Pixiv.PeerConnection.Connection.Start(
+                user,
+                host,
+                Environment.GetEnvironmentVariable("WEBRTC_CONNECT") ?? "stun:stun.l.google.com:19302",
+                Callbacks,
+                _source.Token,
+                CancellationToken.None
+            );
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+        }
+    }
+
+    public void SignOut()
+    {
+        _source?.Cancel();
+    }
+}
+
+[RequireComponent(typeof(Text))]
+internal sealed class Main : MonoBehaviour
+{
+    private readonly PeerConnection _peerConnection = new PeerConnection();
+    private readonly Sora _sora = new Sora();
+    private int _sampleRate;
+
+#pragma warning disable 0649
+    public Button peerConnectionSignIn;
+    public Button peerConnectionSignOut;
+    public Button soraDownstream;
+    public Button soraTerminate;
+    public Button soraUpstream;
+    public RawImage peerConnectionImage;
+    public RawImage soraImage;
+    public Text text;
+#pragma warning restore 0649
+
+    private static unsafe void MoveFrame(DisposableVideoFrame frame, RawImage image)
+    {
         Texture2D newTexture;
         var oldTexture = image.texture;
 
@@ -157,5 +148,104 @@ internal sealed class Main : MonoBehaviour
         }
 
         newTexture.Apply();
+    }
+
+    private System.Collections.IEnumerator UpdateVideo()
+    {
+        while (isActiveAndEnabled)
+        {
+            yield return new WaitForEndOfFrame();
+            _peerConnection.Callbacks.UpdateVideoTrackSource();
+            _sora.Callbacks.UpdateVideoTrackSource();
+        }
+    }
+
+    private void OnAudioFilterRead(float[] data, int channels)
+    {
+        _peerConnection.Callbacks.UpdateAudioTrackSource(data, _sampleRate, channels);
+        _sora.Callbacks.UpdateAudioTrackSource(data, _sampleRate, channels);
+    }
+
+    private void OnEnable()
+    {
+        peerConnectionImage.texture = new Texture2D(1, 1, TextureFormat.RGB24, false);
+        soraImage.texture = new Texture2D(1, 1, TextureFormat.RGB24, false);
+        peerConnectionSignIn.interactable = true;
+        peerConnectionSignOut.interactable = false;
+        soraDownstream.interactable = true;
+        soraTerminate.interactable = false;
+        soraUpstream.interactable = true;
+        _sora.Callbacks.Context = SynchronizationContext.Current;
+        _sora.Callbacks.GameObject = gameObject;
+        _sampleRate = AudioSettings.outputSampleRate;
+
+        peerConnectionSignIn.onClick.AddListener(() =>
+        {
+            _peerConnection.SignIn();
+            peerConnectionSignIn.interactable = false;
+            peerConnectionSignOut.interactable = true;
+        });
+
+        peerConnectionSignOut.onClick.AddListener(() =>
+        {
+            _peerConnection.SignOut();
+            peerConnectionSignIn.interactable = true;
+            peerConnectionSignOut.interactable = false;
+        });
+
+        soraDownstream.onClick.AddListener(() =>
+        {
+            _sora.Callbacks.Role = Role.Downstream;
+            _sora.Start();
+
+            soraDownstream.interactable = false;
+            soraTerminate.interactable = true;
+            soraUpstream.interactable = false;
+        });
+
+        soraTerminate.onClick.AddListener(() =>
+        {
+            _sora.Stop();
+
+            soraDownstream.interactable = true;
+            soraTerminate.interactable = false;
+            soraUpstream.interactable = true;
+        });
+
+        soraUpstream.onClick.AddListener(() =>
+        {
+            _sora.Callbacks.Role = Role.Upstream;
+            _sora.Start();
+
+            soraDownstream.interactable = false;
+            soraTerminate.interactable = true;
+            soraUpstream.interactable = false;
+        });
+
+        StartCoroutine(UpdateVideo());
+    }
+
+    private void OnDisable()
+    {
+        _peerConnection.SignOut();
+        _sora.Stop();
+    }
+
+    private void Update()
+    {
+        text.text = DateTime.Now.ToString();
+
+        var soraFrame = _sora.Callbacks.TryMoveNextVideoFrame();
+        if (soraFrame != null)
+        {
+            MoveFrame(soraFrame, soraImage);
+        }
+
+
+        var peerConnectionFrame = _peerConnection.Callbacks.TryMoveNextVideoFrame();
+        if (peerConnectionFrame != null)
+        {
+            MoveFrame(peerConnectionFrame, peerConnectionImage);
+        }
     }
 }

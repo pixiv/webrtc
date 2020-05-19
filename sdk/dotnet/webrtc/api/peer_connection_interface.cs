@@ -435,7 +435,9 @@ namespace Pixiv.Webrtc
             CpuAdaptation = 1 << 2,
             SuspendBelowMinBitrate = 1 << 3,
             PrerendererSmoothing = 1 << 4,
-            ExperimentCpuLoadEstimator = 1 << 5
+            ExperimentCpuLoadEstimator = 1 << 5,
+            OverrideEnableDtlsSrtp = 1 << 6,
+            EnableDtlsSrtp = 1 << 7,
         }
 
         private struct WebrtcIceServer
@@ -588,6 +590,16 @@ namespace Pixiv.Webrtc
             if (configuration.ExperimentCpuLoadEstimator)
             {
                 unmanagedConfiguration.Flags |= WebrtcRTCConfigurationFlags.ExperimentCpuLoadEstimator;
+            }
+
+            if (configuration.EnableDtlsSrtp.HasValue)
+            {
+                unmanagedConfiguration.Flags |= WebrtcRTCConfigurationFlags.OverrideEnableDtlsSrtp;
+
+                if (configuration.EnableDtlsSrtp.Value)
+                {
+                    unmanagedConfiguration.Flags |= WebrtcRTCConfigurationFlags.EnableDtlsSrtp;
+                }
             }
 
             unmanagedConfiguration.AudioRtcpReportIntervalMs = configuration.AudioRtcpReportIntervalMs;
@@ -902,6 +914,7 @@ namespace Pixiv.Webrtc
                 new IRtcCertificate[0];
             public int IceCandidatePoolSize { get; set; } = 0;
             public SdpSemantics SdpSemantics;
+            public bool? EnableDtlsSrtp { get; set; }
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -944,6 +957,16 @@ namespace Pixiv.Webrtc
         }
 
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void webrtcDeleteRtpSenderInterfaces(
+            IntPtr interfaces);
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool webrtcPeerConnectionInterfaceAddIceCandidate(
+            IntPtr connection,
+            IntPtr candidate
+        );
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
         private static extern WebrtcAddTrackResult webrtcPeerConnectionInterfaceAddTrack(
             IntPtr connection,
             IntPtr track,
@@ -971,6 +994,11 @@ namespace Pixiv.Webrtc
         );
 
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcPeerConnectionInterfaceGetSenders(
+            IntPtr connection
+        );
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
         private static extern void webrtcPeerConnectionInterfaceSetAudioRecording(
             IntPtr connection,
             [MarshalAs(UnmanagedType.I1)] bool recording
@@ -989,6 +1017,40 @@ namespace Pixiv.Webrtc
             IntPtr observer,
             IntPtr desc
         );
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void webrtcRtpSenderInterfacesMove(
+            IntPtr cplusplus,
+            IntPtr c
+        );
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern UIntPtr webrtcRtpSenderInterfacesSize(
+            IntPtr interfaces
+        );
+
+        public static bool AddIceCandidate(
+            this IPeerConnectionInterface connection,
+            IIceCandidateInterface candidate)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
+            if (candidate == null)
+            {
+                throw new ArgumentNullException(nameof(candidate));
+            }
+
+            var result = webrtcPeerConnectionInterfaceAddIceCandidate(
+                connection.Ptr, candidate.Ptr);
+
+            GC.KeepAlive(connection);
+            GC.KeepAlive(candidate);
+
+            return result;
+        }
 
         public static RtcErrorOr<DisposableRtpSenderInterface> AddTrack(
             this IPeerConnectionInterface connection,
@@ -1082,6 +1144,41 @@ namespace Pixiv.Webrtc
 
             GC.KeepAlive(connection);
             GC.KeepAlive(observer);
+        }
+
+        public static DisposableRtpSenderInterface[] GetSenders(
+            this IPeerConnectionInterface connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
+            var cplusplus =
+                webrtcPeerConnectionInterfaceGetSenders(connection.Ptr);
+            GC.KeepAlive(connection);
+            var left = (long)webrtcRtpSenderInterfacesSize(cplusplus);
+            var interfaces = new DisposableRtpSenderInterface[left];
+            var c = new IntPtr[left];
+
+            var handle = GCHandle.Alloc(c, GCHandleType.Pinned);
+            try
+            {
+                var addr = handle.AddrOfPinnedObject();
+                webrtcRtpSenderInterfacesMove(cplusplus, addr);
+            }
+            finally
+            {
+                handle.Free();
+            }
+
+            while (left > 0)
+            {
+                left--;
+                interfaces[left] = new DisposableRtpSenderInterface(c[left]);
+            }
+
+            return interfaces;
         }
 
         public static void SetAudioRecording(

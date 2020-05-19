@@ -7,7 +7,8 @@ This is a fork of WebRTC made by [pixiv Inc](https://www.pixiv.co.jp/).
 - .NET bindings based on C bindings are introduced at `sdk/dotnet`
   - `sdk/dotnet/unity` is a Unity package. Build with MSBuild.
   - `example/unity` is an example to connect to
-    [WebRTC SFU Sora](https://sora.shiguredo.jp/) on Unity.
+    [WebRTC SFU Sora](https://sora.shiguredo.jp/) and programs located in
+    `examples/peerconnection` on Unity.
 - Native APIs are availble for Android library.
 - `webrtc::VideoBuffer`, a simple `webrtc::VideoSinkInterface` which allows you
   to retrieve the last frame at an arbitrary time is introduced.
@@ -194,7 +195,6 @@ implement them:
 
 - Automated tests
 - Examples for .NET Core, .NET Framework/Mono and Xamarin
-- Examples independent of Sora
 - NuGet package
 
 # Additional copyright notice

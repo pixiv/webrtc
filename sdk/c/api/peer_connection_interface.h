@@ -34,6 +34,8 @@ enum {
   WEBRTC_RTC_CONFIGURATION_FLAG_SUSPEND_BELOW_MIN_BITRATE = 1 << 3,
   WEBRTC_RTC_CONFIGURATION_FLAG_PRERENDERER_SMOOTHING = 1 << 4,
   WEBRTC_RTC_CONFIGURATION_FLAG_EXPERIMENT_CPU_LOAD_ESTIMATOR = 1 << 5,
+  WEBRTC_RTC_CONFIGURATION_FLAG_OVERRIDE_ENABLE_DTLS_SRTP = 1 << 6,
+  WEBRTC_RTC_CONFIGURATION_FLAG_ENABLE_DTLS_SRTP = 1 << 7,
 };
 
 enum WebrtcSdpSemantics {
@@ -169,6 +171,9 @@ struct WebrtcPeerConnectionInterfaceRTCOfferAnswerOptions {
 extern "C" {
 #endif
 
+RTC_C_CLASS(std::vector<rtc::scoped_refptr<webrtc::RtpSenderInterface>>,
+            WebrtcRtpSenderInterfaces)
+
 RTC_C_CLASS(webrtc::PeerConnectionObserver, WebrtcPeerConnectionObserver)
 
 RTC_C_CLASS(webrtc::PeerConnectionInterface, WebrtcPeerConnectionInterface)
@@ -270,6 +275,9 @@ struct WebrtcPeerConnectionObserverFunctions {
 RTC_EXPORT void webrtcDeletePeerConnectionObserver(
     WebrtcPeerConnectionObserver* observer);
 
+RTC_EXPORT void webrtcDeleteRtpSenderInterfaces(
+    WebrtcRtpSenderInterfaces* interfaces);
+
 RTC_EXPORT WebrtcPeerConnectionObserver* webrtcNewPeerConnectionObserver(
     void* context,
     const struct WebrtcPeerConnectionObserverFunctions* functions);
@@ -295,6 +303,10 @@ webrtcPeerConnectionFactoryInterfaceCreateVideoTrack(
 RTC_EXPORT void webrtcPeerConnectionFactoryInterfaceRelease(
     const WebrtcPeerConnectionFactoryInterface* factory);
 
+RTC_EXPORT bool webrtcPeerConnectionInterfaceAddIceCandidate(
+    WebrtcPeerConnectionInterface* connection,
+    const WebrtcIceCandidateInterface* candidate);
+
 RTC_EXPORT struct WebrtcPeerConnectionInterfaceAddTrackResult
 webrtcPeerConnectionInterfaceAddTrack(WebrtcPeerConnectionInterface* connection,
                                       WebrtcMediaStreamTrackInterface* track,
@@ -314,6 +326,9 @@ RTC_EXPORT void webrtcPeerConnectionInterfaceCreateOffer(
     WebrtcCreateSessionDescriptionObserver* observer,
     const struct WebrtcPeerConnectionInterfaceRTCOfferAnswerOptions* options);
 
+RTC_EXPORT WebrtcRtpSenderInterfaces* webrtcPeerConnectionInterfaceGetSenders(
+    const WebrtcPeerConnectionInterface* connection);
+
 RTC_EXPORT void webrtcPeerConnectionInterfaceRelease(
     const WebrtcPeerConnectionInterface* connection);
 
@@ -330,6 +345,13 @@ RTC_EXPORT void webrtcPeerConnectionInterfaceSetRemoteDescription(
     WebrtcPeerConnectionInterface* connection,
     WebrtcSetSessionDescriptionObserver* observer,
     WebrtcSessionDescriptionInterface* desc);
+
+RTC_EXPORT void webrtcRtpSenderInterfacesMove(
+    WebrtcRtpSenderInterfaces* cplusplus,
+    WebrtcRtpSenderInterface** c);
+
+RTC_EXPORT size_t webrtcRtpSenderInterfacesSize(
+    const WebrtcRtpSenderInterfaces* interfaces);
 
 #ifdef __cplusplus
 }

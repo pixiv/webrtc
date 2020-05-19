@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
-internal sealed class Callbacks : Pixiv.Sora.ICallbacks
+internal sealed class SoraCallbacks : Pixiv.Sora.ICallbacks
 {
     private readonly Dictionary<string, DisposableVideoTrackInterface> _pendingVideos =
         new Dictionary<string, DisposableVideoTrackInterface>();
