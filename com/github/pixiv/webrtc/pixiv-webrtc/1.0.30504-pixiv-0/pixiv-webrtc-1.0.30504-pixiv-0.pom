@@ -1,0 +1,18 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.github.pixiv.webrtc</groupId>
+  <artifactId>pixiv-webrtc</artifactId>
+  <version>1.0.30504-pixiv-0</version>
+  <packaging>aar</packaging>
+
+  <name>Google's WebRTC Android library forked by pixiv Inc.</name>
+  <url>https://webrtc.org/</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.build.commitid>64f932a47a6aa00d9580760ab82234062250e6cf</project.build.commitid>
+  </properties>
+
+</project>
