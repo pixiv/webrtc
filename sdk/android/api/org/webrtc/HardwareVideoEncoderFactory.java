@@ -27,11 +27,6 @@ import java.util.List;
 public class HardwareVideoEncoderFactory implements VideoEncoderFactory {
   private static final String TAG = "HardwareVideoEncoderFactory";
 
-  // Forced key frame interval - used to reduce color distortions on Qualcomm platforms.
-  private static final int QCOM_VP8_KEY_FRAME_INTERVAL_ANDROID_L_MS = 15000;
-  private static final int QCOM_VP8_KEY_FRAME_INTERVAL_ANDROID_M_MS = 20000;
-  private static final int QCOM_VP8_KEY_FRAME_INTERVAL_ANDROID_N_MS = 15000;
-
   // List of devices with poor H.264 encoder quality.
   // HW H.264 encoder on below devices has poor bitrate control - actual
   // bitrates deviates a lot from the target value.
@@ -122,10 +117,13 @@ public class HardwareVideoEncoderFactory implements VideoEncoderFactory {
       }
     }
 
+    int keyFrameIntervalSec = HardwareVideoEncoderUtils.getKeyFrameIntervalSec(type);
+    int forcedKeyFrameIntervalMs = HardwareVideoEncoderUtils.getForcedKeyFrameIntervalMs(type, codecName);
+    BitrateAdjuster bitrateAdjuster = HardwareVideoEncoderUtils.createBitrateAdjuster(type, codecName);
+
     return new HardwareVideoEncoder(new MediaCodecWrapperFactoryImpl(), codecName, type,
-        surfaceColorFormat, yuvColorFormat, input.params, getKeyFrameIntervalSec(type),
-        getForcedKeyFrameIntervalMs(type, codecName), createBitrateAdjuster(type, codecName),
-        sharedContext);
+        surfaceColorFormat, yuvColorFormat, input.params, keyFrameIntervalSec,
+        forcedKeyFrameIntervalMs, bitrateAdjuster, sharedContext);
   }
 
   @Override
@@ -242,46 +240,6 @@ public class HardwareVideoEncoderFactory implements VideoEncoderFactory {
       return true;
     }
     return codecAllowedPredicate.test(info);
-  }
-
-  private int getKeyFrameIntervalSec(VideoCodecType type) {
-    switch (type) {
-      case VP8: // Fallthrough intended.
-      case VP9:
-        return 100;
-      case H264:
-        return 20;
-    }
-    throw new IllegalArgumentException("Unsupported VideoCodecType " + type);
-  }
-
-  private int getForcedKeyFrameIntervalMs(VideoCodecType type, String codecName) {
-    if (type == VideoCodecType.VP8 && codecName.startsWith(QCOM_PREFIX)) {
-      if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP
-          || Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP_MR1) {
-        return QCOM_VP8_KEY_FRAME_INTERVAL_ANDROID_L_MS;
-      } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.M) {
-        return QCOM_VP8_KEY_FRAME_INTERVAL_ANDROID_M_MS;
-      } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
-        return QCOM_VP8_KEY_FRAME_INTERVAL_ANDROID_N_MS;
-      }
-    }
-    // Other codecs don't need key frame forcing.
-    return 0;
-  }
-
-  private BitrateAdjuster createBitrateAdjuster(VideoCodecType type, String codecName) {
-    if (codecName.startsWith(EXYNOS_PREFIX)) {
-      if (type == VideoCodecType.VP8) {
-        // Exynos VP8 encoders need dynamic bitrate adjustment.
-        return new DynamicBitrateAdjuster();
-      } else {
-        // Exynos VP9 and H264 encoders need framerate-based bitrate adjustment.
-        return new FramerateBitrateAdjuster();
-      }
-    }
-    // Other codecs don't need bitrate adjustment.
-    return new BaseBitrateAdjuster();
   }
 
   private boolean isH264HighProfileSupported(MediaCodecInfo info) {

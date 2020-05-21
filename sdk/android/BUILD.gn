@@ -388,6 +388,7 @@ if (is_android) {
   rtc_android_library("hwcodecs_java") {
     visibility = [ "*" ]
     sources = [
+      "api/org/webrtc/AutomaticHardwareVideoEncoderFactory.java",
       "api/org/webrtc/HardwareVideoDecoderFactory.java",
       "api/org/webrtc/HardwareVideoEncoderFactory.java",
       "api/org/webrtc/PlatformSoftwareVideoDecoderFactory.java",
@@ -397,6 +398,7 @@ if (is_android) {
       "src/java/org/webrtc/DynamicBitrateAdjuster.java",
       "src/java/org/webrtc/FramerateBitrateAdjuster.java",
       "src/java/org/webrtc/HardwareVideoEncoder.java",
+      "src/java/org/webrtc/HardwareVideoEncoderUtils.java",
       "src/java/org/webrtc/MediaCodecUtils.java",
       "src/java/org/webrtc/MediaCodecVideoDecoderFactory.java",
       "src/java/org/webrtc/MediaCodecWrapper.java",

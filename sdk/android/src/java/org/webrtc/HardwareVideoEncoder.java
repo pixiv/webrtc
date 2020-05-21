@@ -43,9 +43,6 @@ class HardwareVideoEncoder implements VideoEncoder {
   // constant until API level 21.
   private static final String KEY_BITRATE_MODE = "bitrate-mode";
 
-  private static final int VIDEO_AVC_PROFILE_HIGH = 8;
-  private static final int VIDEO_AVC_LEVEL_3 = 0x100;
-
   private static final int MAX_VIDEO_FRAMERATE = 30;
 
   // See MAX_ENCODER_Q_SIZE in androidmediaencoder.cc.
@@ -234,28 +231,14 @@ class HardwareVideoEncoder implements VideoEncoder {
 
     final int colorFormat = useSurfaceMode ? surfaceColorFormat : yuvColorFormat;
     try {
-      MediaFormat format = MediaFormat.createVideoFormat(codecType.mimeType(), width, height);
+      MediaFormat format = HardwareVideoEncoderUtils.createMediaFormat(codecType, params);
+      format.setInteger(MediaFormat.KEY_WIDTH, width);
+      format.setInteger(MediaFormat.KEY_HEIGHT, height);
       format.setInteger(MediaFormat.KEY_BIT_RATE, adjustedBitrate);
       format.setInteger(KEY_BITRATE_MODE, VIDEO_ControlRateConstant);
       format.setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat);
       format.setInteger(MediaFormat.KEY_FRAME_RATE, bitrateAdjuster.getCodecConfigFramerate());
       format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, keyFrameIntervalSec);
-      if (codecType == VideoCodecType.H264) {
-        String profileLevelId = params.get(VideoCodecInfo.H264_FMTP_PROFILE_LEVEL_ID);
-        if (profileLevelId == null) {
-          profileLevelId = VideoCodecInfo.H264_CONSTRAINED_BASELINE_3_1;
-        }
-        switch (profileLevelId) {
-          case VideoCodecInfo.H264_CONSTRAINED_HIGH_3_1:
-            format.setInteger("profile", VIDEO_AVC_PROFILE_HIGH);
-            format.setInteger("level", VIDEO_AVC_LEVEL_3);
-            break;
-          case VideoCodecInfo.H264_CONSTRAINED_BASELINE_3_1:
-            break;
-          default:
-            Logging.w(TAG, "Unknown profile level id: " + profileLevelId);
-        }
-      }
       Logging.d(TAG, "Format: " + format);
       codec.configure(
           format, null /* surface */, null /* crypto */, MediaCodec.CONFIGURE_FLAG_ENCODE);
