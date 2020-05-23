@@ -13,7 +13,7 @@
 enum WebrtcSdpType {
   WEBRTC_SDP_TYPE_OFFER,
   WEBRTC_SDP_TYPE_PR_ANSWER,
-  WEBRTC_SDP_TYPE_ANSER
+  WEBRTC_SDP_TYPE_ANSWER
 };
 
 #ifdef __cplusplus

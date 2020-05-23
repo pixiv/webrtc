@@ -110,7 +110,7 @@ enum class SdpType {
 
   // Description must be treated as an SDP final answer, and the offer-
   // answer exchange must be considered complete after receiving this.
-  kAnswer = WEBRTC_SDP_TYPE_ANSER
+  kAnswer = WEBRTC_SDP_TYPE_ANSWER
 };
 
 // Returns the string form of the given SDP type. String forms are defined in
