@@ -7,7 +7,7 @@
 
 #include "sdk/c/api/data_channel_interface.h"
 
-RTC_EXPORT extern "C" void webrtcDataChannelInterfaceRelease(
+extern "C" void webrtcDataChannelInterfaceRelease(
     const WebrtcDataChannelInterface* channel) {
   rtc::ToCplusplus(channel)->Release();
 }

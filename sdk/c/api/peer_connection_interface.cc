@@ -145,12 +145,12 @@ class DelegatingPeerConnectionObserver : public PeerConnectionObserver {
 
 }
 
-RTC_EXPORT extern "C" void webrtcDeletePeerConnectionObserver(
+extern "C" void webrtcDeletePeerConnectionObserver(
     WebrtcPeerConnectionObserver* observer) {
   delete rtc::ToCplusplus(observer);
 }
 
-RTC_EXPORT extern "C" WebrtcPeerConnectionObserver*
+extern "C" WebrtcPeerConnectionObserver*
 webrtcNewPeerConnectionObserver(
     void* context,
     const struct WebrtcPeerConnectionObserverFunctions* functions) {
@@ -158,7 +158,7 @@ webrtcNewPeerConnectionObserver(
       new webrtc::DelegatingPeerConnectionObserver(context, functions)));
 }
 
-RTC_EXPORT extern "C" WebrtcPeerConnectionInterface*
+extern "C" WebrtcPeerConnectionInterface*
 webrtcPeerConnectionFactoryInterfaceCreatePeerConnection(
     WebrtcPeerConnectionFactoryInterface* factory,
     const struct WebrtcPeerConnectionInterfaceRTCConfiguration* cconfiguration,
@@ -274,7 +274,7 @@ webrtcPeerConnectionFactoryInterfaceCreatePeerConnection(
   return rtc::ToC(connection.release());
 }
 
-RTC_EXPORT extern "C" WebrtcAudioTrackInterface*
+extern "C" WebrtcAudioTrackInterface*
 webrtcPeerConnectionFactoryInterfaceCreateAudioTrack(
     WebrtcPeerConnectionFactoryInterface* factory,
     const char* label,
@@ -284,7 +284,7 @@ webrtcPeerConnectionFactoryInterfaceCreateAudioTrack(
                       .release());
 }
 
-RTC_EXPORT extern "C" WebrtcVideoTrackInterface*
+extern "C" WebrtcVideoTrackInterface*
 webrtcPeerConnectionFactoryInterfaceCreateVideoTrack(
     WebrtcPeerConnectionFactoryInterface* factory,
     const char* label,
@@ -294,12 +294,12 @@ webrtcPeerConnectionFactoryInterfaceCreateVideoTrack(
                       .release());
 }
 
-RTC_EXPORT extern "C" void webrtcPeerConnectionFactoryInterfaceRelease(
+extern "C" void webrtcPeerConnectionFactoryInterfaceRelease(
     const WebrtcPeerConnectionFactoryInterface* factory) {
   rtc::ToCplusplus(factory)->Release();
 }
 
-RTC_EXPORT extern "C" WebrtcPeerConnectionInterfaceAddTrackResult
+extern "C" WebrtcPeerConnectionInterfaceAddTrackResult
 webrtcPeerConnectionInterfaceAddTrack(WebrtcPeerConnectionInterface* connection,
                                       WebrtcMediaStreamTrackInterface* track,
                                       const char* const* data,
@@ -324,12 +324,12 @@ webrtcPeerConnectionInterfaceAddTrack(WebrtcPeerConnectionInterface* connection,
   return cresult;
 }
 
-RTC_EXPORT extern "C" void webrtcPeerConnectionInterfaceClose(
+extern "C" void webrtcPeerConnectionInterfaceClose(
     WebrtcPeerConnectionInterface* connection) {
   rtc::ToCplusplus(connection)->Close();
 }
 
-RTC_EXPORT extern "C" void webrtcPeerConnectionInterfaceCreateAnswer(
+extern "C" void webrtcPeerConnectionInterfaceCreateAnswer(
     WebrtcPeerConnectionInterface* connection,
     WebrtcCreateSessionDescriptionObserver* observer,
     const struct WebrtcPeerConnectionInterfaceRTCOfferAnswerOptions* options) {
