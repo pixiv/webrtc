@@ -268,7 +268,7 @@ namespace Pixiv.Sora
                         _startedThreads = startedThreads;
                     }
 
-                    if (_startedThreads == _threads.Length)
+                    if (startedThreads == _threads.Length)
                     {
                         var config = new PeerConnectionInterface.RtcConfiguration();
                         var dependencies = new PeerConnectionDependencies();
