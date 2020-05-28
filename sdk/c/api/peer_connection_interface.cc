@@ -183,7 +183,7 @@ webrtcPeerConnectionFactoryInterfaceCreatePeerConnection(
 
   configuration.set_experiment_cpu_load_estimator(
       cconfiguration->flags &
-      WEBRTC_RTC_CONFIGURaTION_FLAG_EXPERIMENT_CPU_LOAD_ESTIMATOR);
+      WEBRTC_RTC_CONFIGURATION_FLAG_EXPERIMENT_CPU_LOAD_ESTIMATOR);
 
   configuration.set_audio_rtcp_report_interval_ms(
       cconfiguration->audio_rtcp_report_interval_ms);
