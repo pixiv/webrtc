@@ -1,0 +1,133 @@
+# Copyright 2020 pixiv Inc. All Rights Reserved.
+#
+# Use of this source code is governed by a license that can be
+# found in the LICENSE.pixiv file in the root of the source tree.
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  android:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: docker system prune -af
+      - run: echo "::add-path::$PWD/depot_tools"
+      - run: src/.github/bin/setup.sh
+      - run: gclient sync --deps=android,unix --no-history --shallow
+      - run: dotnet build src/sdk/dotnet/unity /p:Configuration=Release /p:Targets=Android
+      - run: src/.github/bin/collect.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          name: android
+          path: artifacts
+
+  ios:
+    runs-on: macos-10.15
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: echo "::add-path::$PWD/depot_tools"
+      - run: src/.github/bin/setup.sh
+      - run: git -C depot_tools fetch https://chromium.googlesource.com/chromium/tools/depot_tools.git 6a1d77869d77b61189247ce8b47ac9d86684a6c2
+      - run: git -C depot_tools cherry-pick FETCH_HEAD
+      - run: gclient sync --deps=ios,mac --no-history --shallow
+      - run: dotnet build src/sdk/dotnet/unity /p:Configuration=Release /p:Targets=Ios
+      - run: src/.github/bin/collect.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ios
+          path: artifacts
+
+  linux:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: echo "::add-path::$PWD/depot_tools"
+      - run: src/.github/bin/setup.sh
+      - run: gclient sync --no-history --shallow
+      - run: dotnet build src/sdk/dotnet/unity /p:Configuration=Release /p:Targets=LinuxX64
+      - run: src/.github/bin/collect.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          name: linux
+          path: artifacts
+
+  mac:
+    runs-on: macos-10.15
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: echo "::add-path::$PWD/depot_tools"
+      - run: src/.github/bin/setup.sh
+      - run: git -C depot_tools fetch https://chromium.googlesource.com/chromium/tools/depot_tools.git 6a1d77869d77b61189247ce8b47ac9d86684a6c2
+      - run: git -C depot_tools cherry-pick FETCH_HEAD
+      - run: gclient sync --no-history --shallow
+      - run: dotnet build src/sdk/dotnet/unity /p:Configuration=Release /p:Targets=MacX64
+      - run: src/.github/bin/collect.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mac
+          path: artifacts
+
+  windows:
+    env:
+      DEPOT_TOOLS_WIN_TOOLCHAIN: '0'
+
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: echo "::add-path::$pwd\depot_tools"
+      - run: bash src/.github/bin/setup.sh
+      - run: $env:PATH=%{$env:PATH.Replace('C:\ProgramData\Chocolatey\bin;', '')}; gclient sync --no-history --shallow
+      - run: dotnet build src\sdk\dotnet\unity /p:Configuration=Release /p:Targets=WinX64
+      - run: bash src/.github/bin/collect.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          name: windows
+          path: artifacts
+
+  package:
+    needs:
+      - android
+      - ios
+      - linux
+      - mac
+      - windows
+
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+      - run: mv artifacts/android unified
+      - run: rsync -a artifacts/ios/ artifacts/linux/ artifacts/mac/ artifacts/windows/ unified
+      - run: rm -r artifacts
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: echo "::add-path::$PWD/depot_tools"
+      - run: src/.github/bin/setup.sh
+      - run: gclient sync --deps=android --no-history --shallow
+      - run: find unified/desc -type f | xargs src/tools_webrtc/libs/json2licenses.py unified/package
+      - run: rm -rf src
+      - run: tar -czf com.pixiv.webrtc.tgz -C unified package
+      - uses: actions/upload-artifact@v2
+        with:
+          name: package
+          path: com.pixiv.webrtc.tgz
