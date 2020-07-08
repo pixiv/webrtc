@@ -338,8 +338,8 @@ namespace Pixiv.Webrtc
             IntPtr audioData,
             int bitsPerSample,
             int sampleRate,
-            int numberOfChannels,
-            int numberOfFrames
+            UIntPtr numberOfChannels,
+            UIntPtr numberOfFrames
         );
 
         public static void OnData(
