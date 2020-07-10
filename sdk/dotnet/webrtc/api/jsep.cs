@@ -194,7 +194,7 @@ namespace Pixiv.Webrtc
         private delegate void SuccessHandler(IntPtr context, IntPtr desc);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void FailureHandler(IntPtr context, RtcErrorType type, IntPtr message);
+        private delegate void FailureHandler(IntPtr context, RtcError error);
 
         private static readonly FunctionPtrArray s_functions = new FunctionPtrArray(
             (DestructionHandler)OnDestruction,
@@ -225,12 +225,12 @@ namespace Pixiv.Webrtc
         }
 
         [MonoPInvokeCallback(typeof(FailureHandler))]
-        private static void OnFailure(IntPtr context, RtcErrorType type, IntPtr message)
+        private static void OnFailure(IntPtr context, RtcError error)
         {
             var handle = (GCHandle)context;
 
             ((IManagedCreateSessionDescriptionObserver)handle.Target).OnFailure(
-                new RtcError(type, Marshal.PtrToStringAnsi(message))
+                error
             );
         }
 
@@ -280,7 +280,7 @@ namespace Pixiv.Webrtc
         private delegate void SuccessHandler(IntPtr context);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void FailureHandler(IntPtr context, RtcErrorType type, IntPtr message);
+        private delegate void FailureHandler(IntPtr context, RtcError error);
 
         private static FunctionPtrArray s_functions = new FunctionPtrArray(
             (DestructionHandler)OnDestruction,
@@ -308,12 +308,12 @@ namespace Pixiv.Webrtc
         }
 
         [MonoPInvokeCallback(typeof(FailureHandler))]
-        private static void OnFailure(IntPtr context, RtcErrorType type, IntPtr message)
+        private static void OnFailure(IntPtr context, RtcError error)
         {
             var handle = (GCHandle)context;
 
             ((IManagedSetSessionDescriptionObserver)handle.Target).OnFailure(
-                new RtcError(type, Marshal.PtrToStringAnsi(message))
+                error
             );
         }
 
