@@ -19,7 +19,7 @@
         <FullOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</FullOutputPath>
         <IsDebug Condition="'$(Configuration)' == Debug">true</IsDebug>
         <IsDebug Condition="'$(Configuration)' != Debug">false</IsDebug>
-        <Targets>LinuxX64</Targets>
+        <Targets>LinuxX64;WinX64;WinX86</Targets>
         <ParsibleTargets>;$(Targets);</ParsibleTargets>
         <EscapedFullIntermediateOutputPath>"$(FullIntermediateOutputPath.Replace('\', '\\').Replace('"', '\"'))"</EscapedFullIntermediateOutputPath>
         <EscapedFullOutputPath>$(FullOutputPath.Replace('\', '\\').Replace('"', '\"'))</EscapedFullOutputPath>
