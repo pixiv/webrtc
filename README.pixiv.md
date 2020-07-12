@@ -148,45 +148,39 @@ You may also refer to `examples/unity` for .NET/Unity specifics.
 C# coding style is conforming to
 [.NET Core coding style](https://github.com/dotnet/corefx/blob/master/Documentation/coding-guidelines/coding-style.md).
 
-## Release build procedure
+## Build procedure of the Unity package
 
-Currently unity package is built manually because of build system complications.
-The release build procedure is as follows:
+1. Install the prerequisite software by following procedure described at:
+   https://webrtc.github.io/webrtc-org/native-code/development/prerequisite-sw/
 
-1. Prepare a computer with Linux installed for Android, Linux, and Windows
-   builds according to https://webrtc.org/native-code/development/.
+2. Make a directory for the checkout and use it as the working directory.
 
-2. Check out this code base at `src`.
+3. Run:
 
-3. Build `unity.msbuildproj` with:
+```shell
+gclient config --name=src --unmanaged https://github.com/pixiv/webrtc.git
+```
+
+4. Run:
+
+```shell
+gclient sync
+```
+
+You may specify `--deps` option for a target operating system differen from
+one of the host.
+
+5. Build `unity.msbuildproj` with:
   * `src/sdk/dotnet/unity` as the working directory,
-  * `Android;LinuxX64;WinX64` as `Targets` property, and
+  * some of `Android`, `Ios`, `LinuxX64`, `MacX64`, `WinX64` as `Targets` property, and
   * `Release` as `Configuration` property
 
-4. Prepare a computer with macOS installed for iOS and macOS builds according to
-   https://webrtc.org/native-code/development/.
+If you are specifying several `Targets`, make them semicolon-separated. (`;`)
 
-5. Check out this code base at `src`.
+6. Make a tarball containing `src/sdk/dotnet/unity/bin/Release/Runtime`
+   produced by 5 as `package` directory.
 
-6. Build `src/sdk/dotnet/unity/unity.msbuildproj` the following properties:
-  * `src/sdk/dotnet/unity` as the working directory,
-  * `Ios;MacX64` as `Targets` property, and
-  * `Release` as `Configuration` property
-
-7. Copy `Editor` and `Editor.meta` in `src/sdk/dotnet/unity/bin/Release`
-   produced by 6 to `src/sdk/dotnet/unity/bin/Release` produced by 3.
-
-8. Copy the contents of `src/sdk/dotnet/unity/bin/Release/Runtime`
-   produced by 6 to `src/sdk/dotnet/unity/bin/Release/Runtime` produced by 3.
-   Do not overwrite exist files.
-
-9. Add license notices included in `src/sdk/dotnet/unity/bin/Release/LICENSE.md`
-   produced by 6 to one produced by 3 if they are missing.
-
-9. Make a tarball containing `src/sdk/dotnet/unity/bin/Release/Runtime`
-   produced by 3 as `package` directory.
-
-10. Gzip the tarball produced by 9.
+7. Gzip the tarball produced by 6.
 
 # Further enhancements
 
