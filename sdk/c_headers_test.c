@@ -15,6 +15,7 @@
 #include "sdk/c/api/video/video_sink_interface.h"
 #include "sdk/c/api/audio_codecs.h"
 #include "sdk/c/api/create_peerconnection_factory.h"
+#include "sdk/c/api/create_turn_server.h"
 #include "sdk/c/api/data_channel_interface.h"
 #include "sdk/c/api/jsep.h"
 #include "sdk/c/api/rtc_error.h"

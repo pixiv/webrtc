@@ -464,7 +464,7 @@ TurnServerAllocation* TurnServer::CreateAllocation(TurnServerConnection* conn,
   RTC_DCHECK(thread_checker_.IsCurrent());
   rtc::AsyncPacketSocket* external_socket =
       (external_socket_factory_)
-          ? external_socket_factory_->CreateUdpSocket(external_addr_, 0, 0)
+          ? external_socket_factory_->CreateUdpSocket(external_addr_, min_udp_port_, max_udp_port_)
           : NULL;
   if (!external_socket) {
     return NULL;

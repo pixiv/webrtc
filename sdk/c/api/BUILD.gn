@@ -63,3 +63,17 @@ rtc_source_set("video_codecs") {
     "../../../api/video_codecs:builtin_video_encoder_factory",
   ]
 }
+
+rtc_source_set("create_turn_server") {
+  sources = [
+    "create_turn_server.cc",
+    "create_turn_server.h",
+  ]
+  deps = [
+    "../../../p2p:p2p_server_utils",
+    "../../../p2p:rtc_p2p",
+    "../../../pc:rtc_pc",
+    "../../../rtc_base",
+    "../../../rtc_base:rtc_base_approved",
+  ]
+}

@@ -239,7 +239,6 @@ if (rtc_include_tests) {
 }
 
 rtc_source_set("p2p_server_utils") {
-  testonly = true
   sources = [
     "base/relay_server.cc",
     "base/relay_server.h",

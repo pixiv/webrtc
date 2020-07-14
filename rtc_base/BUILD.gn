@@ -1007,7 +1007,6 @@ rtc_source_set("testclient") {
 }
 
 rtc_source_set("rtc_base_tests_utils") {
-  testonly = true
   sources = [
     "cpu_time.cc",
     "cpu_time.h",

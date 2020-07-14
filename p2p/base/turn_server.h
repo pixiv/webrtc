@@ -191,6 +191,10 @@ class TurnServer : public sigslot::has_slots<> {
     RTC_DCHECK(thread_checker_.IsCurrent());
     realm_ = realm;
   }
+  void set_port_range(size_t min_udp_port, size_t max_udp_port){
+    min_udp_port_ = min_udp_port;
+    max_udp_port_ = max_udp_port;
+  }
 
   // Gets/sets the value for the SOFTWARE attribute for TURN messages.
   const std::string& software() const {
@@ -336,6 +340,8 @@ class TurnServer : public sigslot::has_slots<> {
   std::vector<std::unique_ptr<rtc::AsyncPacketSocket>> sockets_to_delete_;
   std::unique_ptr<rtc::PacketSocketFactory> external_socket_factory_;
   rtc::SocketAddress external_addr_;
+  size_t min_udp_port_ = 0;
+  size_t max_udp_port_ = 0;
 
   AllocationMap allocations_;
 
