@@ -56,8 +56,6 @@ RTC_EXPORT extern "C" void webrtcCreateTURNServer(
 	size_t max_port) {
 
   rtc::Thread* thread = rtc::ToCplusplus(network_thread);
-  //rtc::Thread* thread = rtc::Thread::Current();
-
   rtc::SocketAddress int_addr;
   if (!int_addr.FromString(local_addr)) {
     std::cerr << "Unable to parse socket address: " << local_addr << std::endl;
@@ -89,13 +87,9 @@ RTC_EXPORT extern "C" void webrtcCreateTURNServer(
   server.set_realm("Agent");
   server.set_software("Agent");
   server.set_port_range(min_port,max_port);
-  std::cerr << "Set TURN min port to " << min_port << std::endl;
-  std::cerr << "Set TURN max port to " << max_port << std::endl;
   server.set_auth_hook(&auth);
   server.AddInternalSocket(int_socket, cricket::PROTO_UDP);
   server.SetExternalSocketFactory(new rtc::BasicPacketSocketFactory(),
                                   rtc::SocketAddress(ext_addr, 0));
-
-  std::cout << "TURN Listening at " << int_addr.ToString() << std::endl;
   thread->Run();
 }
