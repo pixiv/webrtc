@@ -58,11 +58,20 @@ namespace Pixiv.Webrtc
             int dstSampleSize,
             IntPtr dstFrame)
         {
-            return webrtcConvertFromI420(
+            if (srcFrame == null)
+            {
+                throw new ArgumentNullException(nameof(srcFrame));
+            }
+
+            var result = webrtcConvertFromI420(
                 srcFrame.Ptr,
                 dstVideoType,
                 dstSampleSize,
-                dstFrame) == 0;
+                dstFrame);
+
+            GC.KeepAlive(srcFrame);
+
+            return result == 0;
         }
 
         public static bool ConvertToI420(
@@ -75,7 +84,12 @@ namespace Pixiv.Webrtc
             int cropX,
             int cropY)
         {
-            return webrtcConvertToI420(
+            if (dstFrame == null)
+            {
+                throw new ArgumentNullException(nameof(dstFrame));
+            }
+
+            var result = webrtcConvertToI420(
                 srcVideoType,
                 srcSampleSize,
                 srcWidth,
@@ -83,7 +97,11 @@ namespace Pixiv.Webrtc
                 srcFrame,
                 dstFrame.Ptr,
                 cropX,
-                cropY) == 0;
+                cropY);
+
+            GC.KeepAlive(dstFrame);
+
+            return result == 0;
         }
     }
 }

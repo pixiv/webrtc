@@ -61,22 +61,33 @@ namespace Pixiv.Webrtc
                 videoDecoderFactory.ReleasePtr();
             }
 
-            return new DisposablePeerConnectionFactoryInterface(
-                webrtcCreatePeerConnectionFactory(
-                    networkThread == null ? IntPtr.Zero : networkThread.Ptr,
-                    workerThread == null ? IntPtr.Zero : workerThread.Ptr,
-                    signalingThread == null ? IntPtr.Zero : signalingThread.Ptr,
-                    defaultAdm == null ? IntPtr.Zero : defaultAdm.Ptr,
-                    audioEncoderFactory == null ?
-                        IntPtr.Zero : audioEncoderFactory.Ptr,
-                    audioDecoderFactory == null ?
-                        IntPtr.Zero : audioDecoderFactory.Ptr,
-                    videoEncoderFactoryPtr,
-                    videoDecoderFactoryPtr,
-                    audioMixer == null ? IntPtr.Zero : audioMixer.Ptr,
-                    audioProcessing == null ? IntPtr.Zero : audioProcessing.Ptr
-                )
+            var factory = webrtcCreatePeerConnectionFactory(
+                networkThread == null ? IntPtr.Zero : networkThread.Ptr,
+                workerThread == null ? IntPtr.Zero : workerThread.Ptr,
+                signalingThread == null ? IntPtr.Zero : signalingThread.Ptr,
+                defaultAdm == null ? IntPtr.Zero : defaultAdm.Ptr,
+                audioEncoderFactory == null ?
+                    IntPtr.Zero : audioEncoderFactory.Ptr,
+                audioDecoderFactory == null ?
+                    IntPtr.Zero : audioDecoderFactory.Ptr,
+                videoEncoderFactoryPtr,
+                videoDecoderFactoryPtr,
+                audioMixer == null ? IntPtr.Zero : audioMixer.Ptr,
+                audioProcessing == null ? IntPtr.Zero : audioProcessing.Ptr
             );
+
+            GC.KeepAlive(networkThread);
+            GC.KeepAlive(workerThread);
+            GC.KeepAlive(signalingThread);
+            GC.KeepAlive(defaultAdm);
+            GC.KeepAlive(audioEncoderFactory);
+            GC.KeepAlive(audioDecoderFactory);
+            GC.KeepAlive(videoEncoderFactory);
+            GC.KeepAlive(videoDecoderFactory);
+            GC.KeepAlive(audioMixer);
+            GC.KeepAlive(audioProcessing);
+
+            return new DisposablePeerConnectionFactoryInterface(factory);
         }
     }
 }

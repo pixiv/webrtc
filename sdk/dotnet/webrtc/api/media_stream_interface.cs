@@ -352,6 +352,11 @@ namespace Pixiv.Webrtc
         {
             UIntPtr castedNumberOfChannels;
             UIntPtr castedNumberOfFrames;
+
+            if (sink == null)
+            {
+                throw new ArgumentNullException(nameof(sink));
+            }
             try
             {
                 castedNumberOfChannels = (UIntPtr)numberOfChannels;
@@ -377,6 +382,8 @@ namespace Pixiv.Webrtc
                 castedNumberOfChannels,
                 castedNumberOfFrames
             );
+
+            GC.KeepAlive(sink);
         }
     }
 
@@ -403,7 +410,19 @@ namespace Pixiv.Webrtc
             this IAudioTrackInterface track,
             IAudioTrackSinkInterface sink)
         {
+            if (track == null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
+            if (sink == null)
+            {
+                throw new ArgumentNullException(nameof(sink));
+            }
+
             webrtcAudioTrackInterfaceAddSink(track.Ptr, sink.Ptr);
+            GC.KeepAlive(track);
+            GC.KeepAlive(sink);
         }
     }
 
@@ -416,8 +435,14 @@ namespace Pixiv.Webrtc
 
         public static string ID(this IMediaStreamTrackInterface track)
         {
-            return Rtc.Interop.String.MoveToString(
-                webrtcMediaStreamTrackInterfaceId(track.Ptr));
+            if (track == null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+            var id = webrtcMediaStreamTrackInterfaceId(track.Ptr);
+            GC.KeepAlive(track);
+
+            return Rtc.Interop.String.MoveToString(id);
         }
     }
 
@@ -451,6 +476,21 @@ namespace Pixiv.Webrtc
             IVideoSinkInterface sink,
             VideoSinkWants wants)
         {
+            if (track == null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
+            if (sink == null)
+            {
+                throw new ArgumentNullException(nameof(sink));
+            }
+
+            if (wants == null)
+            {
+                throw new ArgumentNullException(nameof(wants));
+            }
+
             var unmanagedWants = new RtcVideoSinkWants();
 
             unmanagedWants.RotationApplied = wants.RotationApplied;
@@ -469,6 +509,9 @@ namespace Pixiv.Webrtc
                 sink.Ptr,
                 unmanagedWants
             );
+
+            GC.KeepAlive(track);
+            GC.KeepAlive(sink);
         }
     }
 }

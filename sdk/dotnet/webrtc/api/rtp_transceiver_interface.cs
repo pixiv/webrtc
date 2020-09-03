@@ -46,8 +46,15 @@ namespace Pixiv.Webrtc
         public static DisposableRtpReceiverInterface Receiver(
             this IRtpTransceiverInterface transceiver)
         {
-            return new DisposableRtpReceiverInterface(
-                webrtcRtpTransceiverInterfaceReceiver(transceiver.Ptr));
+            if (transceiver == null)
+            {
+                throw new ArgumentNullException(nameof(transceiver));
+            }
+
+            var receiver = webrtcRtpTransceiverInterfaceReceiver(transceiver.Ptr);
+            GC.KeepAlive(receiver);
+
+            return new DisposableRtpReceiverInterface(receiver);
         }
     }
 }

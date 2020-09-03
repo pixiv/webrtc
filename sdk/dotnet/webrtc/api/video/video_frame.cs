@@ -59,18 +59,40 @@ namespace Pixiv.Webrtc
 
         public static int Width(this IReadOnlyVideoFrame frame)
         {
-            return webrtcVideoFrameWidth(frame.Ptr);
+            if (frame == null)
+            {
+                throw new ArgumentNullException(nameof(frame));
+            }
+            var width = webrtcVideoFrameWidth(frame.Ptr);
+            GC.KeepAlive(frame);
+
+            return width;
         }
 
         public static int Height(this IReadOnlyVideoFrame frame)
         {
-            return webrtcVideoFrameHeight(frame.Ptr);
+            if (frame == null)
+            {
+                throw new ArgumentNullException(nameof(frame));
+            }
+            var height = webrtcVideoFrameHeight(frame.Ptr);
+            GC.KeepAlive(frame);
+
+            return height;
         }
 
         public static uint Size(this IReadOnlyVideoFrame frame)
         {
-            return (uint)webrtcVideoFrameWidth(frame.Ptr) *
-                (uint)webrtcVideoFrameHeight(frame.Ptr);
+            if (frame == null)
+            {
+                throw new ArgumentNullException(nameof(frame));
+            }
+
+            var width = (uint)webrtcVideoFrameWidth(frame.Ptr);
+            var height = (uint)webrtcVideoFrameHeight(frame.Ptr);
+            GC.KeepAlive(frame);
+
+            return width * height;
         }
     }
 
@@ -168,51 +190,99 @@ namespace Pixiv.Webrtc
         public static DisposableVideoFrame Build(
             this VideoFrame.IBuilder builder)
         {
-            return new DisposableVideoFrame(
-                webrtcVideoFrameBuilderBuild(builder.Ptr));
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+            var frame = webrtcVideoFrameBuilderBuild(builder.Ptr);
+            GC.KeepAlive(builder);
+
+            return new DisposableVideoFrame(frame);
         }
 
         public static void SetVideoFrameBuffer(
             this VideoFrame.IBuilder builder, IVideoFrameBuffer value)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
             webrtcVideoFrameBuilder_set_video_frame_buffer(
                 builder.Ptr, value.Ptr);
+            GC.KeepAlive(builder);
+            GC.KeepAlive(value);
         }
 
         public static void SetTimestampMs(
             this VideoFrame.IBuilder builder, long value)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
             webrtcVideoFrameBuilder_set_timestamp_ms(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
 
         public static void SetTimstampRtp(
             this VideoFrame.IBuilder builder, uint value)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
             webrtcVideoFrameBuilder_set_timestamp_rtp(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
 
         public static void SetNtpTimeMs(
             this VideoFrame.IBuilder builder, long value)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
             webrtcVideoFrameBuilder_set_ntp_time_ms(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
 
         public static void SetRotation(
             this VideoFrame.IBuilder builder, VideoRotation value)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
             webrtcVideoFrameBuilder_set_rotation(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
 
         public static void SetColorSpace(
             this VideoFrame.IBuilder builder, IntPtr value)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
             webrtcVideoFrameBuilder_set_color_space(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
 
         public static void SetID(
             this VideoFrame.IBuilder builder, ushort value)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
             webrtcVideoFrameBuilder_set_id(builder.Ptr, value);
+            GC.KeepAlive(builder);
         }
     }
 }

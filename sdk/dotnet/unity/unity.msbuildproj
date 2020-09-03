@@ -19,7 +19,7 @@
         <FullOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</FullOutputPath>
         <IsDebug Condition="'$(Configuration)' == Debug">true</IsDebug>
         <IsDebug Condition="'$(Configuration)' != Debug">false</IsDebug>
-        <Targets>WinX64</Targets><!--;LinuxX64;WinX64;WinX86</Targets>-->
+        <Targets>;WinX64;WinX86;</Targets><!--;LinuxX64;WinX64;WinX86</Targets>-->
         <ParsibleTargets>;$(Targets);</ParsibleTargets>
         <EscapedFullIntermediateOutputPath>"$(FullIntermediateOutputPath.Replace('\', '\\').Replace('"', '\"'))"</EscapedFullIntermediateOutputPath>
         <EscapedFullOutputPath>$(FullOutputPath.Replace('\', '\\').Replace('"', '\"'))</EscapedFullOutputPath>
@@ -39,12 +39,12 @@
         <Delete Files="$(OutputPath)/Runtime/LICENSE.md" />
     </Target>
     <Target Name="BuildExternal">
-        <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(MSBuildThisFileDirectory)Runtime/external.meta" />
+        <!--<Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(MSBuildThisFileDirectory)Runtime/external.meta" />
         <Copy DestinationFolder="$(OutputPath)Runtime/external" SourceFiles="$(MSBuildThisFileDirectory)Runtime/external/webrtc.deps.json.meta;$(MSBuildThisFileDirectory)Runtime/external/webrtc.dll.meta;$(MSBuildThisFileDirectory)Runtime/external/webrtc.pdb.meta" />
         <MSBuild
             Projects="../webrtc/webrtc.csproj"
             Properties="AppendTargetFrameworkToOutputPath=false;BaseIntermediateOutputPath=$(FullBaseIntermediateOutputPath);IntermediateOutputPath=$(FullIntermediateOutputPath)external/;OutputPath=$(FullOutputPath)Runtime/external/"
-            Targets="Build" />
+            Targets="Build" />-->
     </Target>
     <Target Name="BuildInternal">
         <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(MSBuildThisFileDirectory)Runtime/internal.meta" />

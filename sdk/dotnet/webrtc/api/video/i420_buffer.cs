@@ -94,7 +94,20 @@ namespace Pixiv.Webrtc
         public static void ScaleFrom(
             this II420Buffer dest, II420BufferInterface src)
         {
+            if (dest == null)
+            {
+                throw new ArgumentNullException(nameof(dest));
+            }
+
+            if (src == null)
+            {
+                throw new ArgumentNullException(nameof(src));
+            }
+
             webrtcI420BufferScaleFrom(dest.Ptr, src.Ptr);
+
+            GC.KeepAlive(dest);
+            GC.KeepAlive(src);
         }
     }
 }

@@ -46,8 +46,15 @@ namespace Pixiv.Webrtc
         public static DisposableMediaStreamTrackInterface Track(
             this IRtpReceiverInterface receiver)
         {
-            return Interop.MediaStreamTrackInterface.WrapDisposable(
-                webrtcRtpReceiverInterfaceTrack(receiver.Ptr));
+            if (receiver == null)
+            {
+                throw new ArgumentNullException(nameof(receiver));
+            }
+
+            var track = webrtcRtpReceiverInterfaceTrack(receiver.Ptr);
+            GC.KeepAlive(receiver);
+
+            return Interop.MediaStreamTrackInterface.WrapDisposable(track);
         }
     }
 }
