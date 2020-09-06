@@ -357,6 +357,7 @@ namespace Pixiv.Webrtc
             {
                 throw new ArgumentNullException(nameof(sink));
             }
+
             try
             {
                 castedNumberOfChannels = (UIntPtr)numberOfChannels;
@@ -374,6 +375,7 @@ namespace Pixiv.Webrtc
             {
                 throw new ArgumentOutOfRangeException(nameof(castedNumberOfFrames), inner);
             }
+
             webrtcAudioTrackSinkInterfaceOnData(
                 sink.Ptr,
                 audioData,
@@ -439,6 +441,7 @@ namespace Pixiv.Webrtc
             {
                 throw new ArgumentNullException(nameof(track));
             }
+
             var id = webrtcMediaStreamTrackInterfaceId(track.Ptr);
             GC.KeepAlive(track);
 

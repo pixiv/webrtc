@@ -4,7 +4,7 @@
  *  Use of this source code is governed by a license that can be
  *  found in the LICENSE.pixiv file in the root of the source tree.
  */
-
+#include <cstdlib>
 #include "api/peer_connection_interface.h"
 #include "sdk/c/api/peer_connection_interface.h"
 
@@ -145,12 +145,12 @@ class DelegatingPeerConnectionObserver : public PeerConnectionObserver {
 
 }
 
-RTC_EXPORT extern "C" void webrtcDeletePeerConnectionObserver(
+extern "C" void webrtcDeletePeerConnectionObserver(
     WebrtcPeerConnectionObserver* observer) {
   delete rtc::ToCplusplus(observer);
 }
 
-RTC_EXPORT extern "C" WebrtcPeerConnectionObserver*
+extern "C" WebrtcPeerConnectionObserver*
 webrtcNewPeerConnectionObserver(
     void* context,
     const struct WebrtcPeerConnectionObserverFunctions* functions) {
@@ -158,7 +158,7 @@ webrtcNewPeerConnectionObserver(
       new webrtc::DelegatingPeerConnectionObserver(context, functions)));
 }
 
-RTC_EXPORT extern "C" WebrtcPeerConnectionInterface*
+extern "C" WebrtcPeerConnectionInterface*
 webrtcPeerConnectionFactoryInterfaceCreatePeerConnection(
     WebrtcPeerConnectionFactoryInterface* factory,
     const struct WebrtcPeerConnectionInterfaceRTCConfiguration* cconfiguration,
@@ -183,7 +183,12 @@ webrtcPeerConnectionFactoryInterfaceCreatePeerConnection(
 
   configuration.set_experiment_cpu_load_estimator(
       cconfiguration->flags &
-      WEBRTC_RTC_CONFIGURaTION_FLAG_EXPERIMENT_CPU_LOAD_ESTIMATOR);
+      WEBRTC_RTC_CONFIGURATION_FLAG_EXPERIMENT_CPU_LOAD_ESTIMATOR);
+
+  if (cconfiguration->flags & WEBRTC_RTC_CONFIGURATION_FLAG_OVERRIDE_ENABLE_DTLS_SRTP) {
+    auto flag = cconfiguration->flags & WEBRTC_RTC_CONFIGURATION_FLAG_ENABLE_DTLS_SRTP;
+    configuration.enable_dtls_srtp = flag != 0;
+  }
 
   configuration.set_audio_rtcp_report_interval_ms(
       cconfiguration->audio_rtcp_report_interval_ms);
@@ -274,7 +279,7 @@ webrtcPeerConnectionFactoryInterfaceCreatePeerConnection(
   return rtc::ToC(connection.release());
 }
 
-RTC_EXPORT extern "C" WebrtcAudioTrackInterface*
+extern "C" WebrtcAudioTrackInterface*
 webrtcPeerConnectionFactoryInterfaceCreateAudioTrack(
     WebrtcPeerConnectionFactoryInterface* factory,
     const char* label,
@@ -284,7 +289,7 @@ webrtcPeerConnectionFactoryInterfaceCreateAudioTrack(
                       .release());
 }
 
-RTC_EXPORT extern "C" WebrtcVideoTrackInterface*
+extern "C" WebrtcVideoTrackInterface*
 webrtcPeerConnectionFactoryInterfaceCreateVideoTrack(
     WebrtcPeerConnectionFactoryInterface* factory,
     const char* label,
@@ -294,12 +299,12 @@ webrtcPeerConnectionFactoryInterfaceCreateVideoTrack(
                       .release());
 }
 
-RTC_EXPORT extern "C" void webrtcPeerConnectionFactoryInterfaceRelease(
+extern "C" void webrtcPeerConnectionFactoryInterfaceRelease(
     const WebrtcPeerConnectionFactoryInterface* factory) {
   rtc::ToCplusplus(factory)->Release();
 }
 
-RTC_EXPORT extern "C" WebrtcPeerConnectionInterfaceAddTrackResult
+extern "C" WebrtcPeerConnectionInterfaceAddTrackResult
 webrtcPeerConnectionInterfaceAddTrack(WebrtcPeerConnectionInterface* connection,
                                       WebrtcMediaStreamTrackInterface* track,
                                       const char* const* data,
@@ -324,24 +329,19 @@ webrtcPeerConnectionInterfaceAddTrack(WebrtcPeerConnectionInterface* connection,
   return cresult;
 }
 
-RTC_EXPORT extern "C" bool
-webrtcPeerConnectionInterfaceAddICECandidate(WebrtcPeerConnectionInterface* connection,
-                                      const char* sdpMid,
-                                      size_t sdpMLineIndex,
-                                      const char* sdp) {
-  webrtc::SdpParseError error;
-  webrtc::IceCandidateInterface * candidate = webrtc::CreateIceCandidate(sdpMid, sdpMLineIndex, sdp, &error);
-
-  return rtc::ToCplusplus(connection)
-                      ->AddIceCandidate(candidate);
+extern "C" bool webrtcPeerConnectionInterfaceAddIceCandidate(
+    WebrtcPeerConnectionInterface* connection,
+    const WebrtcIceCandidateInterface* candidate) {
+  return rtc::ToCplusplus(connection)->AddIceCandidate(
+      rtc::ToCplusplus(candidate));
 }
 
-RTC_EXPORT extern "C" void webrtcPeerConnectionInterfaceClose(
+extern "C" void webrtcPeerConnectionInterfaceClose(
     WebrtcPeerConnectionInterface* connection) {
   rtc::ToCplusplus(connection)->Close();
 }
 
-RTC_EXPORT extern "C" void webrtcPeerConnectionInterfaceCreateAnswer(
+extern "C" void webrtcPeerConnectionInterfaceCreateAnswer(
     WebrtcPeerConnectionInterface* connection,
     WebrtcCreateSessionDescriptionObserver* observer,
     const struct WebrtcPeerConnectionInterfaceRTCOfferAnswerOptions* options) {
@@ -355,6 +355,11 @@ extern "C" void webrtcPeerConnectionInterfaceCreateOffer(
     const struct WebrtcPeerConnectionInterfaceRTCOfferAnswerOptions* options) {
   rtc::ToCplusplus(connection)
       ->CreateOffer(rtc::ToCplusplus(observer), *options);
+}
+
+extern "C" WebrtcRtpSenderInterfaces* webrtcPeerConnectionInterfaceGetSenders(
+    const WebrtcPeerConnectionInterface* connection) {
+  return rtc::ToC(new auto(rtc::ToCplusplus(connection)->GetSenders()));
 }
 
 extern "C" void webrtcPeerConnectionInterfaceRelease(
@@ -383,4 +388,20 @@ extern "C" void webrtcPeerConnectionInterfaceSetRemoteDescription(
   rtc::ToCplusplus(connection)
       ->SetRemoteDescription(rtc::ToCplusplus(observer),
                              rtc::ToCplusplus(desc));
+}
+
+extern "C" void webrtcRtpSenderInterfacesMove(
+    WebrtcRtpSenderInterfaces* ccplusplus,
+    WebrtcRtpSenderInterface** c) {
+  auto cplusplusRaw = rtc::ToCplusplus(ccplusplus);
+  auto cplusplus = std::unique_ptr<std::vector<rtc::scoped_refptr<webrtc::RtpSenderInterface>>>(cplusplusRaw);
+
+  for (size_t index = 0; index < cplusplus->size(); index++) {
+    c[index] = rtc::ToC((*cplusplus)[index].release());
+  }
+}
+
+extern "C" size_t webrtcRtpSenderInterfacesSize(
+    const WebrtcRtpSenderInterfaces* interfaces) {
+  return rtc::ToCplusplus(interfaces)->size();
 }

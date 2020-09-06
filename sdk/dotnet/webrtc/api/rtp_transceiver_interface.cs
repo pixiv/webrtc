@@ -52,7 +52,7 @@ namespace Pixiv.Webrtc
             }
 
             var receiver = webrtcRtpTransceiverInterfaceReceiver(transceiver.Ptr);
-            GC.KeepAlive(receiver);
+            GC.KeepAlive(transceiver);
 
             return new DisposableRtpReceiverInterface(receiver);
         }

@@ -23,41 +23,8 @@ namespace Pixiv.Webrtc
         IntPtr Ptr { get; }
     }
 
-    public interface IRTCDataBufferInterface
-    {
-        IntPtr Ptr { get; }
-    }
-
-    public sealed class RTCDataBufferInterface : IRTCDataBufferInterface
-    {
-        public IntPtr Ptr { get; }
-
-        public RTCDataBufferInterface(IntPtr ptr)
-        {
-            Ptr = ptr;
-        }
-    }
-
-    public interface IManagedDataChannelObserver
-    {
-        DisposableDataChannelInterface DataChannel { get; }
-        void OnStateChange();
-        void OnMessage(bool binary, IntPtr data, int data_size);
-        void OnBufferedAmountChange(UInt64 sent_data_size);
-    }
-
     public interface IDisposableCreateSessionDescriptionObserver :
         ICreateSessionDescriptionObserver, Rtc.IDisposable
-    {
-    }
-
-    public interface IDataChannelObserver
-    {
-        IntPtr Ptr { get; }
-    }
-
-    public interface IDisposableDataChannelObserver :
-        IDataChannelObserver, Rtc.IDisposable
     {
     }
 
@@ -103,85 +70,6 @@ namespace Pixiv.Webrtc
         IntPtr Ptr { get; }
     }
 
-    public sealed class DisposableDataChannelObserver: DisposablePtr, IDisposableDataChannelObserver
-    {
-        IntPtr IDataChannelObserver.Ptr => Ptr;
-
-        
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void DestructionHandler(IntPtr context);
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void OnBufferedAmountChangeHandler(IntPtr context, ulong sent_data_size);
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void OnMessageHandler(IntPtr context, bool binary, IntPtr data, int data_size);
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void OnStateChangeHandler(IntPtr context);
-
-        private static readonly FunctionPtrArray s_functions = new FunctionPtrArray(
-            (DestructionHandler)OnDestruction,
-            (OnStateChangeHandler)OnStateChange,
-            (OnMessageHandler)OnMessage,
-            (OnBufferedAmountChangeHandler)OnBufferedAmountChange
-        );
-
-        [MonoPInvokeCallback(typeof(OnStateChangeHandler))]
-        private static void OnStateChange(IntPtr context)
-        {
-            var handle = (GCHandle)context;
-
-            ((IManagedDataChannelObserver)handle.Target).OnStateChange();
-        }
-
-        [MonoPInvokeCallback(typeof(OnMessageHandler))]
-        private static void OnMessage(IntPtr context, bool binary, IntPtr data, int data_size)
-        {
-            var handle = (GCHandle)context;
-
-            ((IManagedDataChannelObserver)handle.Target).OnMessage(binary, data, data_size);
-        }
-
-        [MonoPInvokeCallback(typeof(OnBufferedAmountChangeHandler))]
-        private static void OnBufferedAmountChange(IntPtr context, ulong sent_data_size)
-        {
-            var handle = (GCHandle)context;
-
-            ((IManagedDataChannelObserver)handle.Target).OnBufferedAmountChange(sent_data_size);
-        }
-
-        private protected override void FreePtr()
-        {
-            Interop.DataChannel.UnregisterObserver(DataChannel.GetPtr);
-            DataChannel.Dispose();
-        }
-
-        [MonoPInvokeCallback(typeof(DestructionHandler))]
-        private static void OnDestruction(IntPtr context)
-        {
-            ((GCHandle)context).Free();
-        }
-
-        public DisposableDataChannelObserver(
-            IManagedDataChannelObserver implementation)
-        {
-            DataChannel = implementation.DataChannel;
-            Ptr = Interop.DataChannel.RegisterObserver(
-                (IntPtr)GCHandle.Alloc(implementation),
-                implementation.DataChannel.GetPtr,
-                s_functions.Ptr
-            );
-        }
-
-        public DisposableDataChannelInterface DataChannel
-        {
-            get; private set;
-        }
-
-    }
-
     public sealed class DisposableCreateSessionDescriptionObserver :
         DisposablePtr, IDisposableCreateSessionDescriptionObserver
     {
@@ -194,7 +82,7 @@ namespace Pixiv.Webrtc
         private delegate void SuccessHandler(IntPtr context, IntPtr desc);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void FailureHandler(IntPtr context, RtcErrorType type, IntPtr message);
+        private delegate void FailureHandler(IntPtr context, RtcError error);
 
         private static readonly FunctionPtrArray s_functions = new FunctionPtrArray(
             (DestructionHandler)OnDestruction,
@@ -225,12 +113,12 @@ namespace Pixiv.Webrtc
         }
 
         [MonoPInvokeCallback(typeof(FailureHandler))]
-        private static void OnFailure(IntPtr context, RtcErrorType type, IntPtr message)
+        private static void OnFailure(IntPtr context, RtcError error)
         {
             var handle = (GCHandle)context;
 
             ((IManagedCreateSessionDescriptionObserver)handle.Target).OnFailure(
-                new RtcError(type, Marshal.PtrToStringAnsi(message))
+                error
             );
         }
 
@@ -251,6 +139,22 @@ namespace Pixiv.Webrtc
         private protected override void FreePtr()
         {
             Interop.CreateSessionDescriptionObserver.Release(Ptr);
+        }
+    }
+
+    public sealed class DisposableIceCandidateInterface :
+        DisposablePtr, IDisposableIceCandidateInterface
+    {
+        IntPtr IIceCandidateInterface.Ptr => Ptr;
+
+        public DisposableIceCandidateInterface(IntPtr ptr)
+        {
+            Ptr = ptr;
+        }
+
+        private protected override void FreePtr()
+        {
+            Interop.IceCandidateInterface.Delete(Ptr);
         }
     }
 
@@ -280,7 +184,7 @@ namespace Pixiv.Webrtc
         private delegate void SuccessHandler(IntPtr context);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void FailureHandler(IntPtr context, RtcErrorType type, IntPtr message);
+        private delegate void FailureHandler(IntPtr context, RtcError error);
 
         private static FunctionPtrArray s_functions = new FunctionPtrArray(
             (DestructionHandler)OnDestruction,
@@ -308,12 +212,12 @@ namespace Pixiv.Webrtc
         }
 
         [MonoPInvokeCallback(typeof(FailureHandler))]
-        private static void OnFailure(IntPtr context, RtcErrorType type, IntPtr message)
+        private static void OnFailure(IntPtr context, RtcError error)
         {
             var handle = (GCHandle)context;
 
             ((IManagedSetSessionDescriptionObserver)handle.Target).OnFailure(
-                new RtcError(type, Marshal.PtrToStringAnsi(message))
+                error
             );
         }
 
@@ -349,31 +253,105 @@ namespace Pixiv.Webrtc
         }
     }
 
+    public static class IceCandidate
+    {
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcCreateIceCandidate(
+            string sdpMid,
+            int sdpMlineIndex,
+            string sdp,
+            IntPtr error
+        );
+
+        public static DisposableIceCandidateInterface Create(
+            string sdpMid,
+            int sdpMlineIndex,
+            string sdp,
+            IntPtr error)
+        {
+            var ptr = webrtcCreateIceCandidate(
+                sdpMid, sdpMlineIndex, sdp, error);
+
+            return ptr == IntPtr.Zero ?
+                null : new DisposableIceCandidateInterface(ptr);
+        }
+    }
+
     public static class IceCandidateInterfaceExtension
     {
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool webrtcIceCandidateInterfaceResolve(
+        private static extern bool webrtcIceCandidateInterfaceToString(
             IntPtr ptr,
-            out IntPtr sdpMid,
-            out int sdpMLineIndex,
-            out IntPtr sdp
+            out IntPtr result
         );
 
-        public static bool Resolve(
-            this IIceCandidateInterface candidate, out string sdpMid, out int sdpMLineIndex, out string sdp)
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcIceCandidateInterfaceSdp_mid(
+            IntPtr ptr
+        );
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int webrtcIceCandidateInterfaceSdp_mline_index(
+            IntPtr ptr
+        );
+
+        public static string SdpMid(this IIceCandidateInterface candidate)
         {
             if (candidate == null)
             {
                 throw new ArgumentNullException(nameof(candidate));
             }
 
-            var result = webrtcIceCandidateInterfaceResolve(
-                candidate.Ptr, out var _sdpMid, out sdpMLineIndex, out var _sdp);
+            var ptr = webrtcIceCandidateInterfaceSdp_mid(candidate.Ptr);
+            GC.KeepAlive(candidate);
+            return Rtc.Interop.String.MoveToString(ptr);
+        }
 
-            sdpMid = Rtc.Interop.String.MoveToString(_sdpMid);
-            sdp = Rtc.Interop.String.MoveToString(_sdp);
+        public static int SdpMlineIndex(this IIceCandidateInterface candidate)
+        {
+            if (candidate == null)
+            {
+                throw new ArgumentNullException(nameof(candidate));
+            }
+
+            return webrtcIceCandidateInterfaceSdp_mline_index(candidate.Ptr);
+        }
+
+        public static bool TryToString(
+            this IIceCandidateInterface candidate, out string s)
+        {
+            if (candidate == null)
+            {
+                throw new ArgumentNullException(nameof(candidate));
+            }
+
+            var result = webrtcIceCandidateInterfaceToString(
+                candidate.Ptr, out var webrtcString);
+
+            GC.KeepAlive(candidate);
+            s = Rtc.Interop.String.MoveToString(webrtcString);
 
             return result;
+        }
+    }
+
+    public static class SdpTypeExtension
+    {
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int webrtcSdpTypeFromString(string typeStr);
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr webrtcSdpTypeToString(SdpType type);
+
+        public static SdpType? FromString(string typeStr)
+        {
+            var type = webrtcSdpTypeFromString(typeStr);
+            return type == 3 ? default(SdpType?) : (SdpType)type;
+        }
+
+        public static string ToSdpString(this SdpType type)
+        {
+            return Marshal.PtrToStringAnsi(webrtcSdpTypeToString(type));
         }
     }
 
@@ -401,11 +379,29 @@ namespace Pixiv.Webrtc
     public static class SessionDescriptionInterfaceExtension
     {
         [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
+        private static extern SdpType webrtcSessionDescriptionInterfaceGetType(
+            IntPtr ptr
+        );
+
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool webrtcSessionDescriptionInterfaceToString(
             IntPtr ptr,
             out IntPtr result
         );
+
+        public static SdpType GetSdpType(this ISessionDescriptionInterface desc)
+        {
+            if (desc == null)
+            {
+                throw new ArgumentNullException(nameof(desc));
+            }
+
+            var result = webrtcSessionDescriptionInterfaceGetType(desc.Ptr);
+            GC.KeepAlive(desc);
+
+            return result;
+        }
 
         public static bool TryToString(
             this ISessionDescriptionInterface desc,
@@ -415,8 +411,10 @@ namespace Pixiv.Webrtc
             {
                 throw new ArgumentNullException(nameof(desc));
             }
+
             var result = webrtcSessionDescriptionInterfaceToString(
                 desc.Ptr, out var webrtcString);
+
             GC.KeepAlive(desc);
             s = Rtc.Interop.String.MoveToString(webrtcString);
 
@@ -433,19 +431,10 @@ namespace Pixiv.Webrtc.Interop
         public static extern void Release(IntPtr ptr);
     }
 
-    public static class DataChannel
+    public static class IceCandidateInterface
     {
-        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDataChannelRegisterObserver")]
-        public static extern IntPtr RegisterObserver(
-            IntPtr context,
-            IntPtr dataChannel,
-            IntPtr functions
-        );
-
-        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDataChannelUnregisterObserver")]
-        public static extern void UnregisterObserver(
-            IntPtr context
-        );
+        [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "webrtcDeleteIceCandidateInterface")]
+        public static extern void Delete(IntPtr ptr);
     }
 
     public static class SessionDescriptionInterface
