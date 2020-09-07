@@ -67,14 +67,14 @@
     </Target>
     <Target Condition="$(ParsibleTargets.Contains(';LinuxX64;'))" Name="BuildLinuxX64" DependsOnTargets="BuildExternal">
         <Exec
-            Command="gn gen &quot;--args=is_debug=$(IsDebug) rtc_use_dummy_audio_file_devices=true rtc_use_h264=true rtc_enable_symbol_export=true target_os=\&quot;linux\&quot; target_cpu=\&quot;x64\&quot;&quot; --root=$(EscapedMSBuildThisFileDirectory)../../.. $(EscapedIntermediateOutputPath)linux_x64"
+            Command="gn gen &quot;--args=is_debug=$(IsDebug) ffmpeg_branding=\&quot;Chromium\&quot; proprietary_codecs=true rtc_use_dummy_audio_file_devices=true rtc_use_h264=true rtc_enable_symbol_export=true target_os=\&quot;linux\&quot; target_cpu=\&quot;x64\&quot;&quot; --root=$(EscapedMSBuildThisFileDirectory)../../.. $(EscapedIntermediateOutputPath)linux_x64"
             Condition="!Exists('$(IntermediateOutputPath)linux_x64/build.ninja')" />
         <Exec Command="ninja -C $(EscapedIntermediateOutputPath)linux_x64 :jingle_peerconnection_so" />
         <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(IntermediateOutputPath)linux_x64/libjingle_peerconnection_so.so;$(MSBuildThisFileDirectory)Runtime/libjingle_peerconnection_so.so.meta" />
     </Target>
     <Target Condition="$(ParsibleTargets.Contains(';MacX64;'))" Name="BuildMacX64" DependsOnTargets="BuildExternal">
         <Exec
-            Command="gn gen &quot;--args=is_debug=$(IsDebug) rtc_use_dummy_audio_file_devices=true rtc_use_h264=true rtc_enable_symbol_export=true target_os=\&quot;mac\&quot; target_cpu=\&quot;x64\&quot;&quot; --root=$(EscapedMSBuildThisFileDirectory)../../.. $(EscapedIntermediateOutputPath)mac_x64"
+            Command="gn gen &quot;--args=is_debug=$(IsDebug) ffmpeg_branding=\&quot;Chromium\&quot; proprietary_codecs=true rtc_use_dummy_audio_file_devices=true rtc_use_h264=true rtc_enable_symbol_export=true target_os=\&quot;mac\&quot; target_cpu=\&quot;x64\&quot;&quot; --root=$(EscapedMSBuildThisFileDirectory)../../.. $(EscapedIntermediateOutputPath)mac_x64"
             Condition="!Exists('$(IntermediateOutputPath)mac_x64/build.ninja')" />
         <Exec Command="ninja -C $(EscapedIntermediateOutputPath)mac_x64 :jingle_peerconnection_so" />
         <Copy DestinationFiles="$(OutputPath)Runtime/jingle_peerconnection_so.dylib" SourceFiles="$(IntermediateOutputPath)mac_x64/libjingle_peerconnection_so.dylib" />
