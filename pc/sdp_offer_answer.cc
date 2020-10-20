@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <queue>
+#include <set>
 
 #include "api/media_stream_proxy.h"
 #include "api/uma_metrics.h"

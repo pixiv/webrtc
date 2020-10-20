@@ -3207,20 +3207,32 @@ void PeerConnection::SetSessionError(SessionError error,
   }
 }
 
-void PeerConnection::UpdatePayloadTypeDemuxingState(
+bool PeerConnection::UpdatePayloadTypeDemuxingState(
     cricket::ContentSource source) {
   // We may need to delete any created default streams and disable creation of
   // new ones on the basis of payload type. This is needed to avoid SSRC
   // collisions in Call's RtpDemuxer, in the case that a transceiver has
   // created a default stream, and then some other channel gets the SSRC
-  // signaled in the corresponding Unified Plan "m=" section. For more context
-  // see https://bugs.chromium.org/p/webrtc/issues/detail?id=11477
+  // signaled in the corresponding Unified Plan "m=" section. Specifically, we
+  // need to disable payload type based demuxing when two bundled "m=" sections
+  // are using the same payload type(s). For more context see:
+  // https://bugs.chromium.org/p/webrtc/issues/detail?id=11477
   const SessionDescriptionInterface* sdesc =
       (source == cricket::CS_LOCAL ? local_description()
                                    : remote_description());
-  size_t num_receiving_video_transceivers = 0;
-  size_t num_receiving_audio_transceivers = 0;
+  const cricket::ContentGroup* bundle_group =
+      sdesc->description()->GetGroupByName(cricket::GROUP_TYPE_BUNDLE);
+  std::set<int> audio_payload_types;
+  std::set<int> video_payload_types;
+  bool pt_demuxing_enabled_audio = true;
+  bool pt_demuxing_enabled_video = true;
   for (auto& content_info : sdesc->description()->contents()) {
+    // If this m= section isn't bundled, it's safe to demux by payload type
+    // since other m= sections using the same payload type will also be using
+    // different transports.
+    if (!bundle_group || !bundle_group->HasContentName(content_info.name)) {
+      continue;
+    }
     if (content_info.rejected ||
         (source == cricket::ContentSource::CS_LOCAL &&
          !RtpTransceiverDirectionHasRecv(
@@ -3232,19 +3244,37 @@ void PeerConnection::UpdatePayloadTypeDemuxingState(
       continue;
     }
     switch (content_info.media_description()->type()) {
-      case cricket::MediaType::MEDIA_TYPE_AUDIO:
-        ++num_receiving_audio_transceivers;
+      case cricket::MediaType::MEDIA_TYPE_AUDIO: {
+        const cricket::AudioContentDescription* audio_desc =
+            content_info.media_description()->as_audio();
+        for (const cricket::AudioCodec& audio : audio_desc->codecs()) {
+          if (audio_payload_types.count(audio.id)) {
+            // Two m= sections are using the same payload type, thus demuxing
+            // by payload type is not possible.
+            pt_demuxing_enabled_audio = false;
+          }
+          audio_payload_types.insert(audio.id);
+        }
         break;
-      case cricket::MediaType::MEDIA_TYPE_VIDEO:
-        ++num_receiving_video_transceivers;
+      }
+      case cricket::MediaType::MEDIA_TYPE_VIDEO: {
+        const cricket::VideoContentDescription* video_desc =
+            content_info.media_description()->as_video();
+        for (const cricket::VideoCodec& video : video_desc->codecs()) {
+          if (video_payload_types.count(video.id)) {
+            // Two m= sections are using the same payload type, thus demuxing
+            // by payload type is not possible.
+            pt_demuxing_enabled_video = false;
+          }
+          video_payload_types.insert(video.id);
+        }
         break;
+      }
       default:
         // Ignore data channels.
         continue;
     }
   }
-  bool pt_demuxing_enabled_video = num_receiving_video_transceivers <= 1;
-  bool pt_demuxing_enabled_audio = num_receiving_audio_transceivers <= 1;
 
   // Gather all updates ahead of time so that all channels can be updated in a
   // single Invoke; necessary due to thread guards.
@@ -3266,26 +3296,34 @@ void PeerConnection::UpdatePayloadTypeDemuxingState(
                                     transceiver->internal()->channel());
   }
 
-  if (!channels_to_update.empty()) {
-    worker_thread()->Invoke<void>(
-        RTC_FROM_HERE, [&channels_to_update, pt_demuxing_enabled_audio,
-                        pt_demuxing_enabled_video]() {
-          for (const auto& it : channels_to_update) {
-            RtpTransceiverDirection local_direction = it.first;
-            cricket::ChannelInterface* channel = it.second;
-            cricket::MediaType media_type = channel->media_type();
-            if (media_type == cricket::MediaType::MEDIA_TYPE_AUDIO) {
-              channel->SetPayloadTypeDemuxingEnabled(
-                  pt_demuxing_enabled_audio &&
-                  RtpTransceiverDirectionHasRecv(local_direction));
-            } else if (media_type == cricket::MediaType::MEDIA_TYPE_VIDEO) {
-              channel->SetPayloadTypeDemuxingEnabled(
-                  pt_demuxing_enabled_video &&
-                  RtpTransceiverDirectionHasRecv(local_direction));
+  if (channels_to_update.empty()) {
+    return true;
+  }
+  return worker_thread()->Invoke<bool>(
+      RTC_FROM_HERE, [&channels_to_update, bundle_group,
+                      pt_demuxing_enabled_audio, pt_demuxing_enabled_video]() {
+        for (const auto& it : channels_to_update) {
+          RtpTransceiverDirection local_direction = it.first;
+          cricket::ChannelInterface* channel = it.second;
+          cricket::MediaType media_type = channel->media_type();
+          bool in_bundle_group = (bundle_group && bundle_group->HasContentName(
+                                                      channel->content_name()));
+          if (media_type == cricket::MediaType::MEDIA_TYPE_AUDIO) {
+            if (!channel->SetPayloadTypeDemuxingEnabled(
+                    (!in_bundle_group || pt_demuxing_enabled_audio) &&
+                    RtpTransceiverDirectionHasRecv(local_direction))) {
+              return false;
+            }
+          } else if (media_type == cricket::MediaType::MEDIA_TYPE_VIDEO) {
+            if (!channel->SetPayloadTypeDemuxingEnabled(
+                    (!in_bundle_group || pt_demuxing_enabled_video) &&
+                    RtpTransceiverDirectionHasRecv(local_direction))) {
+              return false;
             }
           }
-        });
-  }
+        }
+        return true;
+      });
 }
 
 RTCError PeerConnection::PushdownMediaDescription(
@@ -3297,7 +3335,13 @@ RTCError PeerConnection::PushdownMediaDescription(
   RTC_DCHECK_RUN_ON(signaling_thread());
   RTC_DCHECK(sdesc);
 
-  UpdatePayloadTypeDemuxingState(source);
+  if (!UpdatePayloadTypeDemuxingState(source)) {
+    // Note that this is never expected to fail, since RtpDemuxer doesn't return
+    // an error when changing payload type demux criteria, which is all this
+    // does.
+    LOG_AND_RETURN_ERROR(RTCErrorType::INTERNAL_ERROR,
+                         "Failed to update payload type demuxing state.");
+  }
 
   // Push down the new SDP media section for each audio/video transceiver.
   for (const auto& transceiver : transceivers_.List()) {

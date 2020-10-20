@@ -783,7 +783,7 @@ class PeerConnection : public PeerConnectionInternal,
 
   // Based on number of transceivers per media type, enabled or disable
   // payload type based demuxing in the affected channels.
-  void UpdatePayloadTypeDemuxingState(cricket::ContentSource source)
+  bool UpdatePayloadTypeDemuxingState(cricket::ContentSource source)
       RTC_RUN_ON(signaling_thread());
   // Push the media parts of the local or remote session description
   // down to all of the channels.
