@@ -27,15 +27,10 @@ bool ModelReverbInNonlinearMode() {
   return !field_trial::IsEnabled("WebRTC-Aec3NonlinearModeReverbKillSwitch");
 }
 
-constexpr float kDefaultTransparentModeGain = 0.f;
+constexpr float kDefaultTransparentModeGain = 0.01f;
 
 float GetTransparentModeGain() {
-  if (field_trial::IsEnabled(
-          "WebRTC-Aec3NoSuppressionInTransparentModeKillSwitch")) {
-    return 0.01f;
-  } else {
-    return kDefaultTransparentModeGain;
-  }
+  return kDefaultTransparentModeGain;
 }
 
 float GetEarlyReflectionsDefaultModeGain(
