@@ -33,6 +33,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: src
+      - run: sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
       - run: echo "$PWD/depot_tools" >> $GITHUB_PATH
       - run: src/.github/bin/setup.sh
       - run: git -C depot_tools fetch https://chromium.googlesource.com/chromium/tools/depot_tools.git 6a1d77869d77b61189247ce8b47ac9d86684a6c2
@@ -69,6 +70,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: src
+      - run: sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
       - run: echo "$PWD/depot_tools" >> $GITHUB_PATH
       - run: src/.github/bin/setup.sh
       - run: git -C depot_tools fetch https://chromium.googlesource.com/chromium/tools/depot_tools.git 6a1d77869d77b61189247ce8b47ac9d86684a6c2
@@ -139,6 +141,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: src
+      - run: sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
       - run: echo "$PWD/depot_tools" >> $GITHUB_PATH
       - run: src/.github/bin/setup.sh
       - run: git -C depot_tools fetch https://chromium.googlesource.com/chromium/tools/depot_tools.git 6a1d77869d77b61189247ce8b47ac9d86684a6c2
