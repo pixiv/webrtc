@@ -16,7 +16,7 @@ jobs:
         with:
           path: src
       - run: docker system prune -af
-      - run: echo "::add-path::$PWD/depot_tools"
+      - run: echo "$PWD/depot_tools" >> $GITHUB_PATH
       - run: src/.github/bin/setup.sh
       - run: gclient sync --deps=android,unix --no-history --shallow
       - run: dotnet build src/sdk/dotnet/unity /p:Configuration=Release /p:Targets=Android
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: src
-      - run: echo "::add-path::$PWD/depot_tools"
+      - run: echo "$PWD/depot_tools" >> $GITHUB_PATH
       - run: src/.github/bin/setup.sh
       - run: git -C depot_tools fetch https://chromium.googlesource.com/chromium/tools/depot_tools.git 6a1d77869d77b61189247ce8b47ac9d86684a6c2
       - run: git -C depot_tools cherry-pick FETCH_HEAD
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: src
-      - run: echo "::add-path::$PWD/depot_tools"
+      - run: echo "$PWD/depot_tools" >> $GITHUB_PATH
       - run: src/.github/bin/setup.sh
       - run: gclient sync --no-history --shallow
       - run: dotnet build src/sdk/dotnet/unity /p:Configuration=Release /p:Targets=LinuxX64
@@ -69,7 +69,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: src
-      - run: echo "::add-path::$PWD/depot_tools"
+      - run: echo "$PWD/depot_tools" >> $GITHUB_PATH
       - run: src/.github/bin/setup.sh
       - run: git -C depot_tools fetch https://chromium.googlesource.com/chromium/tools/depot_tools.git 6a1d77869d77b61189247ce8b47ac9d86684a6c2
       - run: git -C depot_tools cherry-pick FETCH_HEAD
@@ -91,7 +91,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: src
-      - run: echo "::add-path::$pwd\depot_tools"
+      - run: echo "$pwd\depot_tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - run: bash src/.github/bin/setup.sh
       - run: $env:PATH=%{$env:PATH.Replace('C:\ProgramData\Chocolatey\bin;', '')}; gclient sync --no-history --shallow
       - run: dotnet build src\sdk\dotnet\unity /p:Configuration=Release /p:Targets=WinX64
@@ -121,7 +121,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: src
-      - run: echo "::add-path::$PWD/depot_tools"
+      - run: echo "$PWD/depot_tools" >> $GITHUB_PATH
       - run: src/.github/bin/setup.sh
       - run: gclient sync --deps=android --no-history --shallow
       - run: find unified/desc -type f | xargs src/tools_webrtc/libs/json2licenses.py unified/package
@@ -139,7 +139,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: src
-      - run: echo "::add-path::$PWD/depot_tools"
+      - run: echo "$PWD/depot_tools" >> $GITHUB_PATH
       - run: src/.github/bin/setup.sh
       - run: git -C depot_tools fetch https://chromium.googlesource.com/chromium/tools/depot_tools.git 6a1d77869d77b61189247ce8b47ac9d86684a6c2
       - run: git -C depot_tools cherry-pick FETCH_HEAD
@@ -148,12 +148,12 @@ jobs:
       # The build option is expected to compatible with sora-ios-sdk.
       # rtc_enable_protobuf=false suppresses the event log, which consumes lots of memory,
       # for memory-constrained environment like broadcast extension.
-      - run: tools_webrtc/ios/build_ios_libs.py --arch arm64 x64 -e --extra-gn-args rtc_enable_protobuf=false
+      - run: src/tools_webrtc/ios/build_ios_libs.py --arch arm64 x64 -e --extra-gn-args rtc_enable_protobuf=false
 
       - run: zip -q -r --symlinks WebRTC.framework.zip WebRTC.framework
-        working-directory: out/ios_libs
+        working-directory: src/out_ios_libs
 
       - uses: actions/upload-artifact@v2
         with:
           name: ios
-          path: out_ios_libs/WebRTC.framework.zip
+          path: src/out_ios_libs/WebRTC.framework.zip
