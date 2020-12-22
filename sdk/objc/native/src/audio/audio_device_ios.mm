@@ -9,6 +9,7 @@
  */
 
 #import <AVFoundation/AVFoundation.h>
+#import <CoreMedia/CoreMedia.h>
 #import <Foundation/Foundation.h>
 
 #include "audio_device_ios.h"
@@ -114,7 +115,6 @@ AudioDeviceIOS::AudioDeviceIOS()
       num_playout_callbacks_(0),
       last_output_volume_change_time_(0) {
   LOGI() << "ctor" << ios::GetCurrentThreadDescription();
-  io_thread_checker_.Detach();
   thread_checker_.Detach();
   thread_ = rtc::Thread::Current();
 
@@ -138,7 +138,6 @@ void AudioDeviceIOS::AttachAudioBuffer(AudioDeviceBuffer* audioBuffer) {
 
 AudioDeviceGeneric::InitStatus AudioDeviceIOS::Init() {
   LOGI() << "Init";
-  io_thread_checker_.Detach();
   thread_checker_.Detach();
 
   RTC_DCHECK_RUN_ON(&thread_checker_);
@@ -148,19 +147,6 @@ AudioDeviceGeneric::InitStatus AudioDeviceIOS::Init() {
 #if !defined(NDEBUG)
   LogDeviceInfo();
 #endif
-  // Store the preferred sample rate and preferred number of channels already
-  // here. They have not been set and confirmed yet since configureForWebRTC
-  // is not called until audio is about to start. However, it makes sense to
-  // store the parameters now and then verify at a later stage.
-  RTC_OBJC_TYPE(RTCAudioSessionConfiguration)* config =
-      [RTC_OBJC_TYPE(RTCAudioSessionConfiguration) webRTCConfiguration];
-  playout_parameters_.reset(config.sampleRate, config.outputNumberOfChannels);
-  record_parameters_.reset(config.sampleRate, config.inputNumberOfChannels);
-  // Ensure that the audio device buffer (ADB) knows about the internal audio
-  // parameters. Note that, even if we are unable to get a mono audio session,
-  // we will always tell the I/O audio unit to do a channel format conversion
-  // to guarantee mono on the "input side" of the audio unit.
-  UpdateAudioDeviceBuffer();
   initialized_ = true;
   return InitStatus::OK;
 }
@@ -229,7 +215,10 @@ int32_t AudioDeviceIOS::StartPlayout() {
   RTC_DCHECK_RUN_ON(&thread_checker_);
   RTC_DCHECK(audio_is_initialized_);
   RTC_DCHECK(!playing_);
-  RTC_DCHECK(audio_unit_);
+  if (!audio_unit_) {
+    RTCLogError(@"StartPlayout failed because audio is disabled.");
+    return -1;
+  }
   if (fine_audio_buffer_) {
     fine_audio_buffer_->ResetPlayout();
   }
@@ -282,11 +271,10 @@ int32_t AudioDeviceIOS::StartRecording() {
   RTC_DCHECK_RUN_ON(&thread_checker_);
   RTC_DCHECK(audio_is_initialized_);
   RTC_DCHECK(!recording_);
-  RTC_DCHECK(audio_unit_);
   if (fine_audio_buffer_) {
     fine_audio_buffer_->ResetRecord();
   }
-  if (!playing_ && audio_unit_->GetState() == VoiceProcessingAudioUnit::kInitialized) {
+  if (!playing_ && audio_unit_ && audio_unit_->GetState() == VoiceProcessingAudioUnit::kInitialized) {
     if (!audio_unit_->Start()) {
       RTCLogError(@"StartRecording failed to start audio unit.");
       return -1;
@@ -304,7 +292,9 @@ int32_t AudioDeviceIOS::StopRecording() {
     return 0;
   }
   if (!playing_) {
-    ShutdownPlayOrRecord();
+    if (audio_unit_) {
+      ShutdownPlayOrRecord();
+    }
     audio_is_initialized_ = false;
   }
   rtc::AtomicOps::ReleaseStore(&recording_, 0);
@@ -366,12 +356,70 @@ void AudioDeviceIOS::OnChangedOutputVolume() {
   thread_->Post(RTC_FROM_HERE, this, kMessageOutputVolumeChange);
 }
 
+void AudioDeviceIOS::OnDeliverRecordedExternalData(CMSampleBufferRef sample_buffer) {
+  MutexLock scoped_lock(&io_mutex_);
+
+  if (audio_unit_ && audio_unit_->GetState() != VoiceProcessingAudioUnit::kUninitialized) {
+    RTCLogError(@"External recorded data was provided while audio unit is enabled.");
+    return;
+  }
+
+  CMFormatDescriptionRef description = CMSampleBufferGetFormatDescription(sample_buffer);
+  const AudioStreamBasicDescription *asbd = CMAudioFormatDescriptionGetStreamBasicDescription(description);
+  if (!asbd) {
+    RTCLogError(@"External recorded data was not in audio format.");
+    return;
+  }
+
+  if (asbd->mSampleRate != record_parameters_.sample_rate() ||
+      asbd->mChannelsPerFrame != record_parameters_.channels()) {
+    record_parameters_.reset(asbd->mSampleRate, asbd->mChannelsPerFrame);
+    UpdateAudioDeviceBuffer();
+
+    // Create a modified audio buffer class which allows us to ask for,
+    // or deliver, any number of samples (and not only multiple of 10ms) to match
+    // the native audio unit buffer size.
+    RTC_DCHECK(audio_device_buffer_);
+    fine_audio_buffer_.reset(new FineAudioBuffer(audio_device_buffer_));
+  }
+
+  CMBlockBufferRef block_buffer = CMSampleBufferGetDataBuffer(sample_buffer);
+  if (block_buffer == nil) {
+    return;
+  }
+
+  AudioBufferList buffer_list;
+  CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sample_buffer,
+                                                          nullptr,
+                                                          &buffer_list,
+                                                          sizeof(buffer_list),
+                                                          nullptr,
+                                                          nullptr,
+                                                          kCMSampleBufferFlag_AudioBufferList_Assure16ByteAlignment,
+                                                          &block_buffer);
+
+  rtc::ArrayView<int16_t> view {
+    static_cast<int16_t*>(buffer_list.mBuffers[0].mData),
+    buffer_list.mBuffers[0].mDataByteSize / sizeof(int16_t)
+  };
+
+  if (asbd->mFormatFlags & kAudioFormatFlagIsBigEndian) {
+    for (auto& element : view) {
+      element = be16toh(element);
+    }
+  }
+
+  fine_audio_buffer_->DeliverRecordedData(view, kFixedRecordDelayEstimate);
+
+  CFRelease(block_buffer);
+}
+
 OSStatus AudioDeviceIOS::OnDeliverRecordedData(AudioUnitRenderActionFlags* flags,
                                                const AudioTimeStamp* time_stamp,
                                                UInt32 bus_number,
                                                UInt32 num_frames,
                                                AudioBufferList* /* io_data */) {
-  RTC_DCHECK_RUN_ON(&io_thread_checker_);
+  MutexLock scoped_lock(&io_mutex_);
   OSStatus result = noErr;
   // Simply return if recording is not enabled.
   if (!rtc::AtomicOps::AcquireLoad(&recording_)) return result;
@@ -419,7 +467,7 @@ OSStatus AudioDeviceIOS::OnGetPlayoutData(AudioUnitRenderActionFlags* flags,
                                           UInt32 bus_number,
                                           UInt32 num_frames,
                                           AudioBufferList* io_data) {
-  RTC_DCHECK_RUN_ON(&io_thread_checker_);
+  MutexLock scoped_lock(&io_mutex_);
   // Verify 16-bit, noninterleaved mono PCM signal format.
   RTC_DCHECK_EQ(1, io_data->mNumberBuffers);
   AudioBuffer* audio_buffer = &io_data->mBuffers[0];
@@ -665,15 +713,17 @@ void AudioDeviceIOS::UpdateAudioDeviceBuffer() {
   // AttachAudioBuffer() is called at construction by the main class but check
   // just in case.
   RTC_DCHECK(audio_device_buffer_) << "AttachAudioBuffer must be called first";
-  RTC_DCHECK_GT(playout_parameters_.sample_rate(), 0);
-  RTC_DCHECK_GT(record_parameters_.sample_rate(), 0);
-  RTC_DCHECK_EQ(playout_parameters_.channels(), 1);
-  RTC_DCHECK_EQ(record_parameters_.channels(), 1);
   // Inform the audio device buffer (ADB) about the new audio format.
-  audio_device_buffer_->SetPlayoutSampleRate(playout_parameters_.sample_rate());
-  audio_device_buffer_->SetPlayoutChannels(playout_parameters_.channels());
-  audio_device_buffer_->SetRecordingSampleRate(record_parameters_.sample_rate());
-  audio_device_buffer_->SetRecordingChannels(record_parameters_.channels());
+  if (playout_parameters_.is_valid()) {
+    RTC_DCHECK_EQ(playout_parameters_.channels(), 1);
+    audio_device_buffer_->SetPlayoutSampleRate(playout_parameters_.sample_rate());
+    audio_device_buffer_->SetPlayoutChannels(playout_parameters_.channels());
+  }
+  if (record_parameters_.is_valid()) {
+    RTC_DCHECK_EQ(record_parameters_.channels(), 1);
+    audio_device_buffer_->SetRecordingSampleRate(record_parameters_.sample_rate());
+    audio_device_buffer_->SetRecordingChannels(record_parameters_.channels());
+  }
 }
 
 void AudioDeviceIOS::SetupAudioBuffersForActiveAudioSession() {
@@ -710,9 +760,9 @@ void AudioDeviceIOS::SetupAudioBuffersForActiveAudioSession() {
   // number of audio frames.
   // Example: IO buffer size = 0.008 seconds <=> 128 audio frames at 16kHz.
   // Hence, 128 is the size we expect to see in upcoming render callbacks.
-  playout_parameters_.reset(sample_rate, playout_parameters_.channels(), io_buffer_duration);
+  playout_parameters_.reset(sample_rate, webRTCConfig.outputNumberOfChannels, io_buffer_duration);
   RTC_DCHECK(playout_parameters_.is_complete());
-  record_parameters_.reset(sample_rate, record_parameters_.channels(), io_buffer_duration);
+  record_parameters_.reset(sample_rate, webRTCConfig.inputNumberOfChannels, io_buffer_duration);
   RTC_DCHECK(record_parameters_.is_complete());
   RTC_LOG(LS_INFO) << " frames per I/O buffer: " << playout_parameters_.frames_per_buffer();
   RTC_LOG(LS_INFO) << " bytes per I/O buffer: " << playout_parameters_.GetBytesPerBuffer();
@@ -755,8 +805,10 @@ void AudioDeviceIOS::UpdateAudioUnit(bool can_play_or_record) {
   // be initialized on initialization.
   if (!audio_is_initialized_) return;
 
-  // If we're initialized, we must have an audio unit.
-  RTC_DCHECK(audio_unit_);
+  if (can_play_or_record && !audio_unit_ && !CreateAudioUnit()) {
+    RTCLog(@"Failed to create audio unit.");
+    return;
+  }
 
   bool should_initialize_audio_unit = false;
   bool should_uninitialize_audio_unit = false;
@@ -862,11 +914,6 @@ bool AudioDeviceIOS::InitPlayOrRecord() {
   LOGI() << "InitPlayOrRecord";
   RTC_DCHECK_RUN_ON(&thread_checker_);
 
-  // There should be no audio unit at this point.
-  if (!CreateAudioUnit()) {
-    return false;
-  }
-
   RTC_OBJC_TYPE(RTCAudioSession)* session = [RTC_OBJC_TYPE(RTCAudioSession) sharedInstance];
   // Subscribe to audio session events.
   [session pushDelegate:audio_session_observer_];
@@ -885,6 +932,26 @@ bool AudioDeviceIOS::InitPlayOrRecord() {
   // If we are ready to play or record, and if the audio session can be
   // configured, then initialize the audio unit.
   if (session.canPlayOrRecord) {
+    // Store the preferred sample rate and preferred number of channels already
+    // here. They have not been set and confirmed yet since configureForWebRTC
+    // is not called until audio is about to start. However, it makes sense to
+    // store the parameters now and then verify at a later stage.
+    RTC_OBJC_TYPE(RTCAudioSessionConfiguration)* config =
+        [RTC_OBJC_TYPE(RTCAudioSessionConfiguration) webRTCConfiguration];
+    playout_parameters_.reset(config.sampleRate, config.outputNumberOfChannels);
+    record_parameters_.reset(config.sampleRate, config.inputNumberOfChannels);
+    // Ensure that the audio device buffer (ADB) knows about the internal audio
+    // parameters. Note that, even if we are unable to get a mono audio session,
+    // we will always tell the I/O audio unit to do a channel format conversion
+    // to guarantee mono on the "input side" of the audio unit.
+    UpdateAudioDeviceBuffer();
+
+    // There should be no audio unit at this point.
+    if (!CreateAudioUnit()) {
+      [session unlockForConfiguration];
+      return false;
+    }
+
     if (!ConfigureAudioSession()) {
       // One possible reason for failure is if an attempt was made to use the
       // audio session during or after a Media Services failure.
@@ -912,10 +979,6 @@ void AudioDeviceIOS::ShutdownPlayOrRecord() {
   // Close and delete the voice-processing I/O unit.
   audio_unit_.reset();
 
-  // Detach thread checker for the AURemoteIO::IOThread to ensure that the
-  // next session uses a fresh thread id.
-  io_thread_checker_.Detach();
-
   // Remove audio session notification observers.
   RTC_OBJC_TYPE(RTCAudioSession)* session = [RTC_OBJC_TYPE(RTCAudioSession) sharedInstance];
   [session removeDelegate:audio_session_observer_];
@@ -927,11 +990,6 @@ void AudioDeviceIOS::ShutdownPlayOrRecord() {
 
 void AudioDeviceIOS::PrepareForNewStart() {
   LOGI() << "PrepareForNewStart";
-  // The audio unit has been stopped and preparations are needed for an upcoming
-  // restart. It will result in audio callbacks from a new native I/O thread
-  // which means that we must detach thread checkers here to be prepared for an
-  // upcoming new audio stream.
-  io_thread_checker_.Detach();
 }
 
 bool AudioDeviceIOS::IsInterrupted() {
