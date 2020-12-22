@@ -8,7 +8,7 @@ on:
   - pull_request
 
 jobs:
-  android:
+  unity_android:
     runs-on: ubuntu-18.04
 
     steps:
@@ -23,10 +23,10 @@ jobs:
       - run: src/.github/bin/collect.sh
       - uses: actions/upload-artifact@v2
         with:
-          name: android
+          name: unity_android
           path: artifacts
 
-  ios:
+  unity_ios:
     runs-on: macos-10.15
 
     steps:
@@ -42,10 +42,10 @@ jobs:
       - run: src/.github/bin/collect.sh
       - uses: actions/upload-artifact@v2
         with:
-          name: ios
+          name: unity_ios
           path: artifacts
 
-  linux:
+  unity_linux:
     runs-on: ubuntu-18.04
 
     steps:
@@ -59,10 +59,10 @@ jobs:
       - run: src/.github/bin/collect.sh
       - uses: actions/upload-artifact@v2
         with:
-          name: linux
+          name: unity_linux
           path: artifacts
 
-  mac:
+  unity_mac:
     runs-on: macos-10.15
 
     steps:
@@ -78,10 +78,10 @@ jobs:
       - run: src/.github/bin/collect.sh
       - uses: actions/upload-artifact@v2
         with:
-          name: mac
+          name: unity_mac
           path: artifacts
 
-  windows:
+  unity_windows:
     env:
       DEPOT_TOOLS_WIN_TOOLCHAIN: '0'
 
@@ -98,16 +98,16 @@ jobs:
       - run: bash src/.github/bin/collect.sh
       - uses: actions/upload-artifact@v2
         with:
-          name: windows
+          name: unity_windows
           path: artifacts
 
-  package:
+  unity:
     needs:
-      - android
-      - ios
-      - linux
-      - mac
-      - windows
+      - unity_android
+      - unity_ios
+      - unity_linux
+      - unity_mac
+      - unity_windows
 
     runs-on: ubuntu-18.04
 
@@ -115,8 +115,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           path: artifacts
-      - run: mv artifacts/android unified
-      - run: rsync -a artifacts/ios/ artifacts/linux/ artifacts/mac/ artifacts/windows/ unified
+      - run: mv artifacts/unity_android unified
+      - run: rsync -a artifacts/unity_ios/ artifacts/unity_linux/ artifacts/unity_mac/ artifacts/unity_windows/ unified
       - run: rm -r artifacts
       - uses: actions/checkout@v2
         with:
@@ -129,5 +129,31 @@ jobs:
       - run: tar -czf com.pixiv.webrtc.tgz -C unified package
       - uses: actions/upload-artifact@v2
         with:
-          name: package
+          name: unity
           path: com.pixiv.webrtc.tgz
+
+  ios:
+    runs-on: macos-10.15
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: echo "::add-path::$PWD/depot_tools"
+      - run: src/.github/bin/setup.sh
+      - run: git -C depot_tools fetch https://chromium.googlesource.com/chromium/tools/depot_tools.git 6a1d77869d77b61189247ce8b47ac9d86684a6c2
+      - run: git -C depot_tools cherry-pick FETCH_HEAD
+      - run: gclient sync --deps=ios,mac --no-history --shallow
+
+      # The build option is expected to compatible with sora-ios-sdk.
+      # rtc_enable_protobuf=false suppresses the event log, which consumes lots of memory,
+      # for memory-constrained environment like broadcast extension.
+      - run: tools_webrtc/ios/build_ios_libs.py --arch arm64 x64 -e --extra-gn-args rtc_enable_protobuf=false
+
+      - run: zip -q -r --symlinks WebRTC.framework.zip WebRTC.framework
+        working-directory: out/ios_libs
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ios
+          path: out_ios_libs/WebRTC.framework.zip
