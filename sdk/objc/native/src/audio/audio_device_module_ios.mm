@@ -649,6 +649,10 @@ AudioDeviceModuleIOS::AudioDeviceModuleIOS(bool bypass_voice_processing)
   }
 
 #if defined(WEBRTC_IOS)
+  void AudioDeviceModuleIOS::OnDeliverRecordedExternalData(CMSampleBufferRef sample_buffer) {
+    audio_device_->OnDeliverRecordedExternalData(sample_buffer);
+  }
+
   int AudioDeviceModuleIOS::GetPlayoutAudioParameters(
       AudioParameters* params) const {
     RTC_DLOG(LS_INFO) << __FUNCTION__;
