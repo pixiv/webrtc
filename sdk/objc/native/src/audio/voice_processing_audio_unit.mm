@@ -14,6 +14,7 @@
 #include "system_wrappers/include/metrics.h"
 
 #import "base/RTCLogging.h"
+#import "sdk/objc/components/audio/RTCAudioSession+Private.h"
 #import "sdk/objc/components/audio/RTCAudioSessionConfiguration.h"
 
 #if !defined(NDEBUG)
@@ -113,6 +114,7 @@ bool VoiceProcessingAudioUnit::Init(OSType audio_unit_sub_type) {
     return false;
   }
 
+  /*
   // Enable input on the input scope of the input element.
   UInt32 enable_input = 1;
   result = AudioUnitSetProperty(vpio_unit_, kAudioOutputUnitProperty_EnableIO,
@@ -125,6 +127,7 @@ bool VoiceProcessingAudioUnit::Init(OSType audio_unit_sub_type) {
                 (long)result);
     return false;
   }
+  */
 
   // Enable output on the output scope of the output element.
   UInt32 enable_output = 1;
@@ -169,6 +172,7 @@ bool VoiceProcessingAudioUnit::Init(OSType audio_unit_sub_type) {
     return false;
   }
 
+  /*
   // Specify the callback to be called by the I/O thread to us when input audio
   // is available. The recorded samples can then be obtained by calling the
   // AudioUnitRender() method.
@@ -186,6 +190,7 @@ bool VoiceProcessingAudioUnit::Init(OSType audio_unit_sub_type) {
                 (long)result);
     return false;
   }
+  */
 
   state_ = kUninitialized;
   return true;
@@ -198,6 +203,9 @@ VoiceProcessingAudioUnit::State VoiceProcessingAudioUnit::GetState() const {
 bool VoiceProcessingAudioUnit::Initialize(Float64 sample_rate) {
   RTC_DCHECK_GE(state_, kUninitialized);
   RTCLog(@"Initializing audio unit with sample rate: %f", sample_rate);
+
+  RTCAudioSession *session = [RTCAudioSession sharedInstance];
+  [session startVoiceProcessingAudioUnit: this];
 
   OSStatus result = noErr;
   AudioStreamBasicDescription format = GetFormat(sample_rate);
@@ -353,6 +361,9 @@ OSStatus VoiceProcessingAudioUnit::Start() {
 bool VoiceProcessingAudioUnit::Stop() {
   RTC_DCHECK_GE(state_, kUninitialized);
   RTCLog(@"Stopping audio unit.");
+
+  RTCAudioSession *session = [RTCAudioSession sharedInstance];
+  [session stopVoiceProcessingAudioUnit];
 
   OSStatus result = AudioOutputUnitStop(vpio_unit_);
   if (result != noErr) {

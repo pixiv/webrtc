@@ -69,7 +69,7 @@ static RTC_OBJC_TYPE(RTCAudioSessionConfiguration) *gWebRTCConfiguration = nil;
     // By default, using this category implies that our app’s audio is
     // nonmixable, hence activating the session will interrupt any other
     // audio sessions which are also nonmixable.
-    _category = AVAudioSessionCategoryPlayAndRecord;
+    _category = AVAudioSessionCategoryAmbient;
     _categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth;
 
     // Specify mode for two-way voice communication (e.g. VoIP).

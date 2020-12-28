@@ -19,6 +19,9 @@ This is a fork of WebRTC made by [pixiv Inc](https://www.pixiv.co.jp/).
   added.
 - An audio unit component other than the Voice-Processing I/O unit can be used
   to record audio on iOS.
+- **BREAKING CHANGE** A patch to remove the implicit microphone permission
+  requirement for iOS is applied. The original patch is:
+  https://github.com/shiguredo-webrtc-build/webrtc-build/blob/m86.4240.10.0/patches/ios_manual_audio_input.patch
 
 # Delivering audio data on iOS's broadcast extension
 

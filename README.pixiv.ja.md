@@ -18,6 +18,9 @@
 - iOS の broadcast extension で録音した音声を配信するために必要な API が追加されています。
 - iOS で録音するときに Voice-Processing I/O unit 以外の audio unit component が
   使えるようになっています。
+- **破壊的変更** iOSでの暗黙のマイク権限要求を取り除くパッチが適用されています。オリジナルの
+  パッチは次のリンクを参照してください。
+  https://github.com/shiguredo-webrtc-build/webrtc-build/blob/m86.4240.10.0/patches/ios_manual_audio_input.patch
 
 # iOS の broadcast extension で録音した音声を配信する
 
