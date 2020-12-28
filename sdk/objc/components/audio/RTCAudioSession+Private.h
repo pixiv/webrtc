@@ -9,6 +9,8 @@
  */
 
 #import "RTCAudioSession.h"
+#import <AudioUnit/AudioUnit.h>
+#include "sdk/objc/native/src/audio/voice_processing_audio_unit.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -86,6 +88,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)notifyDidStartPlayOrRecord;
 - (void)notifyDidStopPlayOrRecord;
 - (void)notifyDidDetectPlayoutGlitch:(int64_t)totalNumberOfGlitches;
+
+@property(nonatomic, readonly) webrtc::ios_adm::VoiceProcessingAudioUnit *vpAudioUnit;
+
+- (void)startVoiceProcessingAudioUnit:(webrtc::ios_adm::VoiceProcessingAudioUnit *)vpAudioUnit;
+- (void)stopVoiceProcessingAudioUnit;
+- (void)finishInitializeInput;
 
 @end
 

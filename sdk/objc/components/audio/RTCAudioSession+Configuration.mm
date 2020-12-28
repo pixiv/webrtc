@@ -52,13 +52,14 @@
   // everything we can.
   NSError *error = nil;
 
-  if (self.category != configuration.category ||
-      self.categoryOptions != configuration.categoryOptions) {
+  RTCLog(@"Current category => %@, configuration category => %@",
+         self.category, configuration.category);
+  if (self.category != configuration.category) {
     NSError *categoryError = nil;
     if (![self setCategory:configuration.category
-               withOptions:configuration.categoryOptions
                      error:&categoryError]) {
-      RTCLogError(@"Failed to set category: %@",
+      RTCLogError(@"Failed to set category to %@: %@",
+                  configuration.category,
                   categoryError.localizedDescription);
       error = categoryError;
     } else {
@@ -66,10 +67,13 @@
     }
   }
 
+  RTCLog(@"Current mode => %@, configuration mode => %@",
+         self.mode , configuration.mode);
   if (self.mode != configuration.mode) {
     NSError *modeError = nil;
     if (![self setMode:configuration.mode error:&modeError]) {
-      RTCLogError(@"Failed to set mode: %@",
+      RTCLogError(@"Failed to set mode to %@: %@",
+                  configuration.mode,
                   modeError.localizedDescription);
       error = modeError;
     } else {
@@ -83,7 +87,8 @@
     if (![self setCategory:configuration.category
                withOptions:configuration.categoryOptions
                      error:&categoryError]) {
-      RTCLogError(@"Failed to set category options: %@",
+      RTCLogError(@"Failed to set category options to %ld: %@",
+                  (long)configuration.categoryOptions,
                   categoryError.localizedDescription);
       error = categoryError;
     } else {
@@ -173,7 +178,8 @@
     *outError = error;
   }
 
-  return error == nil;
+  //return error == nil;
+  return YES;
 }
 
 @end

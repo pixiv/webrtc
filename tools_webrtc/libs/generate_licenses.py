@@ -71,6 +71,7 @@ LIB_TO_LICENSES_DICT = {
     'ooura': ['common_audio/third_party/ooura/LICENSE'],
     'spl_sqrt_floor': ['common_audio/third_party/spl_sqrt_floor/LICENSE'],
     'webrtc (additions made by pixiv Inc.)': ['LICENSE.pixiv'],
+    'webrtc (additions made by Shiguredo Inc.)': ['LICENSE.shiguredo'],
 
     # TODO(bugs.webrtc.org/1110): Remove this hack. This is not a lib.
     # For some reason it is listed as so in _GetThirdPartyLibraries.

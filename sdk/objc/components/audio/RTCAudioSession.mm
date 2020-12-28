@@ -24,6 +24,7 @@
 NSString *const kRTCAudioSessionErrorDomain = @"org.webrtc.RTC_OBJC_TYPE(RTCAudioSession)";
 NSInteger const kRTCAudioSessionErrorLockRequired = -1;
 NSInteger const kRTCAudioSessionErrorConfiguration = -2;
+NSInteger const kRTCAudioSessionErrorInputInitialization = -3;
 NSString * const kRTCAudioSessionOutputVolumeSelector = @"outputVolume";
 
 @interface RTC_OBJC_TYPE (RTCAudioSession)
@@ -45,6 +46,11 @@ NSString * const kRTCAudioSessionOutputVolumeSelector = @"outputVolume";
   BOOL _isAudioEnabled;
   BOOL _canPlayOrRecord;
   BOOL _isInterrupted;
+
+  webrtc::ios_adm::VoiceProcessingAudioUnit *_vpAudioUnit;
+  BOOL _waitsInputInit;
+  BOOL _isInputInited;
+  void (^_inputInitCompletionHandler)(NSError *_Nullable error);
 }
 
 @synthesize session = _session;
@@ -404,6 +410,14 @@ NSString * const kRTCAudioSessionOutputVolumeSelector = @"outputVolume";
   }
   RTCLog(@"Number of current activations: %d", _activationCount);
   return success;
+}
+
+- (BOOL)setCategory:(NSString *)category
+              error:(NSError **)outError {
+  if (![self checkLock:outError]) {
+    return NO;
+  }
+  return [self.session setCategory:category error:outError];
 }
 
 - (BOOL)setCategory:(NSString *)category
@@ -998,6 +1012,128 @@ NSString * const kRTCAudioSessionOutputVolumeSelector = @"outputVolume";
     if ([delegate respondsToSelector:sel]) {
       [delegate audioSession:self failedToSetActive:active error:error];
     }
+  }
+}
+
+// A VP I/O unit's bus 1 connects to input hardware (microphone).
+static const AudioUnitElement kInputBus = 1;
+
+- (void)startVoiceProcessingAudioUnit:(webrtc::ios_adm::VoiceProcessingAudioUnit *)vpAudioUnit {
+  _vpAudioUnit = vpAudioUnit;
+
+  [self lockForConfiguration];
+  BOOL result = [self configureWebRTCSession:nil];
+  [self unlockForConfiguration];
+  if (!result) {
+      RTCLogError(@"Failed to configure WebRTC audio session.");
+  }
+
+  if (_waitsInputInit) {
+    [self finishInitializeInput];
+  }
+}
+
+- (void)stopVoiceProcessingAudioUnit {
+  _vpAudioUnit = nil;
+  _isInputInited = NO;
+  _waitsInputInit = NO;
+  _inputInitCompletionHandler = nil;
+}
+
+- (void)initializeInput:(nullable void (^)(NSError *_Nullable error))completionHandler {
+  NSError *error = nil;
+
+  if (_isInputInited) {
+    RTCLogError(@"Input is already initialized.");
+    error = [[NSError alloc] initWithDomain:kRTCAudioSessionErrorDomain
+                                       code:kRTCAudioSessionErrorInputInitialization
+                                   userInfo:nil];
+    if (completionHandler != nil) {
+      completionHandler(error);
+    }
+  } else if (_vpAudioUnit != nil) {
+    _inputInitCompletionHandler = completionHandler;
+    [self finishInitializeInput];
+  } else if (_waitsInputInit) {
+    RTCLogError(@"Audio session is already waiting for input initialization.");
+    error = [[NSError alloc] initWithDomain:kRTCAudioSessionErrorDomain
+                                       code:kRTCAudioSessionErrorInputInitialization
+                                   userInfo:nil];
+    if (completionHandler != nil) {
+      completionHandler(error);
+    }
+  } else {
+    _inputInitCompletionHandler = completionHandler;
+    _waitsInputInit = YES;
+  }
+}
+
+- (void)finishInitializeInput {
+  NSError *error = nil;
+
+  RTCLog(@"Initializing input...");
+
+  if (_vpAudioUnit == nil) {
+      RTCLogError(@"Voice processing audio unit is not initialized. This method must be invoked after voice processing audio unit is initialized.");
+      error = [[NSError alloc] initWithDomain:kRTCAudioSessionErrorDomain
+                                         code:kRTCAudioSessionErrorInputInitialization
+                                     userInfo:nil];
+      if (_inputInitCompletionHandler != nil) {
+        _inputInitCompletionHandler(error);
+      }
+      return;
+  }
+
+  // Enable input on the input scope of the input element.
+  OSStatus result = noErr;
+  UInt32 enable_input = 1;
+  result = AudioUnitSetProperty(_vpAudioUnit->vpio_unit_,
+                                kAudioOutputUnitProperty_EnableIO,
+                                kAudioUnitScope_Input, kInputBus, &enable_input,
+                                sizeof(enable_input));
+  if (result != noErr) {
+    //_vpAudioUnit->DisposeAudioUnit();
+    RTCLogError(@"Failed to enable input on input scope of input element. "
+                 "Error=%ld.",
+                (long)result);
+    error = [[NSError alloc] initWithDomain:kRTCAudioSessionErrorDomain
+                                       code:kRTCAudioSessionErrorInputInitialization
+                                   userInfo:nil];
+    if (_inputInitCompletionHandler != nil) {
+      _inputInitCompletionHandler(error);
+    }
+    return;
+  }
+
+  // Specify the callback to be called by the I/O thread to us when input audio
+  // is available. The recorded samples can then be obtained by calling the
+  // AudioUnitRender() method.
+  AURenderCallbackStruct input_callback;
+  input_callback.inputProc = _vpAudioUnit->OnDeliverRecordedData;
+  input_callback.inputProcRefCon = _vpAudioUnit;
+  result = AudioUnitSetProperty(_vpAudioUnit->vpio_unit_,
+                                kAudioOutputUnitProperty_SetInputCallback,
+                                kAudioUnitScope_Global, kInputBus,
+                                &input_callback, sizeof(input_callback));
+  if (result != noErr) {
+    //_vpAudioUnit->DisposeAudioUnit();
+    RTCLogError(@"Failed to specify the input callback on the input bus. "
+                 "Error=%ld.",
+                (long)result);
+    error = [[NSError alloc] initWithDomain:kRTCAudioSessionErrorDomain
+                                       code:kRTCAudioSessionErrorInputInitialization
+                                   userInfo:nil];
+    if (_inputInitCompletionHandler != nil) {
+      _inputInitCompletionHandler(error);
+    }
+    return;
+  }
+
+  RTCLog(@"Finish input initialization.");
+  _isInputInited = YES;
+  _waitsInputInit = NO;
+  if (_inputInitCompletionHandler != nil) {
+    _inputInitCompletionHandler(nil);
   }
 }
 

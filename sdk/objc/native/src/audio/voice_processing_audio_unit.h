@@ -92,7 +92,7 @@ class VoiceProcessingAudioUnit {
                   UInt32 num_frames,
                   AudioBufferList* io_data);
 
- private:
+ //private:
   // The C API used to set callbacks requires static functions. When these are
   // called, they will invoke the relevant instance method by casting
   // in_ref_con to VoiceProcessingAudioUnit*.
