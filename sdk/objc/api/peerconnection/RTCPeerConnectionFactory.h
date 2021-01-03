@@ -38,9 +38,11 @@ RTC_OBJC_EXPORT
 - (instancetype)initWithEncoderFactory:(nullable id<RTCVideoEncoderFactory>)encoderFactory
                         decoderFactory:(nullable id<RTCVideoDecoderFactory>)decoderFactory;
 
+#if defined(WEBRTC_IOS)
 - (instancetype)initWithEncoderFactory:(nullable id<RTCVideoEncoderFactory>)encoderFactory
                         decoderFactory:(nullable id<RTCVideoDecoderFactory>)decoderFactory
                      audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule;
+#endif
 
 /** Initialize an RTCAudioSource with constraints. */
 - (RTCAudioSource *)audioSourceWithConstraints:(nullable RTCMediaConstraints *)constraints;
