@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 RTC_OBJC_EXPORT
 
+NS_CLASS_AVAILABLE_IOS(2_0)
 @interface RTCAudioDeviceModule : NSObject
 
 - (void)deliverRecordedData:(CMSampleBufferRef)sampleBuffer;
