@@ -78,6 +78,21 @@ Broadcast extension では `YES` に設定してください。これは audio u
 
 Broadcast extension では `NO` に設定してください。これは audio unit を無効にします。
 
+# iOS 上で Voice-Processing I/O 以外の audio unit component を利用する
+
+Voice-Processing I/O unit にはエコーキャンセリングのような双方向のコミュニケーションに
+適した機能があります。これらの機能は場合によっては不要であり、音量の低下などの問題を引き起こし
+さえします。
+
+そのような場合を網羅するためには他の audio unit component を利用してください。
+
+## `RTCAudioDeviceModule.audioUnitSubType`
+
+これは audio unit subtype を保持しているプロパティです。型は `OSType` です。次の
+ドキュメンテーションを参照してください。
+
+https://developer.apple.com/documentation/audiotoolbox/audio_unit_v2_c_api/1584139-input_output_audio_unit_subtypes
+
 # .NET バインディング
 
 ## 機能

@@ -77,6 +77,20 @@ Set `YES` on broadcast extension. That prevents initializing the audio unit.
 
 Set `NO` on broadcast extension. That disables the audio unit.
 
+# Using an audio unit component other than the Voice-Processing I/O unit on iOS
+
+The Voice-Processing I/O unit has features favorable for two-way communication
+such as echo suppression. These features may not be needed for other scenarios,
+and even cause problems like reduced volume.
+
+Use another audio unit component to cover such scenarios.
+
+## `RTCAudioDeviceModule.audioUnitSubType`
+
+This is a property holding the audio unit subtype. The type is `OSType`. Refer to:
+
+https://developer.apple.com/documentation/audiotoolbox/audio_unit_v2_c_api/1584139-input_output_audio_unit_subtypes
+
 # .NET bindings
 
 ## Features
