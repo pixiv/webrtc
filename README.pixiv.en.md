@@ -167,7 +167,7 @@ gclient config --name=src --unmanaged https://github.com/pixiv/webrtc.git
 gclient sync
 ```
 
-You may specify `--deps` option for a target operating system differen from
+You may specify `--deps` option for a target operating system different from
 one of the host.
 
 5. Build `unity.msbuildproj` with:
