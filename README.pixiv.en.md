@@ -5,7 +5,10 @@ This is a fork of WebRTC made by [pixiv Inc](https://www.pixiv.co.jp/).
 - `tools_webrtc/libs/generate_licenses.py` is compatible with Windows build.
 - Partial C bindings are introduced at `sdk/c`
 - .NET bindings based on C bindings are introduced at `sdk/dotnet`
-  - `sdk/dotnet/unity` is a Unity package. Build with MSBuild.
+  - `sdk/dotnet/unity` is a Unity package.
+    - Build with MSBuild.
+    - Do not use Mono to build. For the details, see:
+      https://github.com/dotnet/msbuild/issues/3468
   - `example/unity` is an example to connect to
     [WebRTC SFU Sora](https://sora.shiguredo.jp/) and programs located in
     `examples/peerconnection` on Unity.

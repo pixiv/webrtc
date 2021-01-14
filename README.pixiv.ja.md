@@ -6,7 +6,10 @@
 - `tools_webrtc/libs/generate_licenses.py` と Windows ビルドの互換性が追加されています。
 - 部分的なC言語バインディングが `sdk/c` に追加されています。
 - C言語バインディングに基づく .NET バインディングが `sdk/dotnet` に追加されています。
-  - `sdk/dotnet/unity` は Unity パッケージになっています。 MSBuild でビルドしてください。
+  - `sdk/dotnet/unity` は Unity パッケージになっています。
+    - MSBuild でビルドしてください。
+    - ビルド時に Mono を使わないでください。詳細は https://github.com/dotnet/msbuild/issues/3468
+      を参照してください。
   - `example/unity` は Unity で [WebRTC SFU Sora](https://sora.shiguredo.jp/) と
     `examples/peerconnection` にあるプログラムに接続する例になっています。
 - ライブラリでネイティブAPIが利用可能になっています。
