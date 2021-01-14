@@ -12,7 +12,7 @@
       を参照してください。
   - `example/unity` は Unity で [WebRTC SFU Sora](https://sora.shiguredo.jp/) と
     `examples/peerconnection` にあるプログラムに接続する例になっています。
-- ライブラリでネイティブAPIが利用可能になっています。
+- Android ライブラリでネイティブAPIが利用可能になっています。
 - 最後のフレームを任意のタイミングで取得できる、簡単な `webrtc::VideoSinkInterface` が
   `webrtc::VideoBuffer` として追加されています。
 - iOS の broadcast extension で録音した音声を配信するために必要な API が追加されています。
