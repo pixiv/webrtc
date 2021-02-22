@@ -80,14 +80,14 @@
         <Copy DestinationFiles="$(OutputPath)Runtime/jingle_peerconnection_so.dylib" SourceFiles="$(IntermediateOutputPath)mac_x64/libjingle_peerconnection_so.dylib" />
         <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(MSBuildThisFileDirectory)Runtime/jingle_peerconnection_so.dylib.meta" />
     </Target>
-    <Target Condition="$(ParsibleTargets.Contains(';WinX64;'))" Name="BuildWinX64" DependsOnTargets="BuildExternal">
+    <Target Condition="$(ParsibleTargets.Contains(';WinX64;'))" Name="BuildWinX64">
         <Exec
             Command="gn gen &quot;--args=is_debug=$(IsDebug) rtc_use_dummy_audio_file_devices=true rtc_use_h264=true rtc_enable_symbol_export=true target_os=\&quot;win\&quot; target_cpu=\&quot;x64\&quot;&quot; --root=$(EscapedMSBuildThisFileDirectory)../../.. $(EscapedIntermediateOutputPath)win_x64"
             Condition="!Exists('$(IntermediateOutputPath)win_x64/build.ninja')" />
         <Exec Command="ninja -C $(EscapedIntermediateOutputPath)win_x64 :jingle_peerconnection_so" />
         <Copy DestinationFolder="$(OutputPath)Runtime" SourceFiles="$(IntermediateOutputPath)win_x64/jingle_peerconnection_so.dll;$(MSBuildThisFileDirectory)Runtime/jingle_peerconnection_so.dll.meta" />
     </Target>
-    <Target Condition="$(ParsibleTargets.Contains(';WinX86;'))" Name="BuildWinX86" DependsOnTargets="BuildExternal">
+    <Target Condition="$(ParsibleTargets.Contains(';WinX86;'))" Name="BuildWinX86">
         <Exec
             Command="gn gen &quot;--args=is_debug=$(IsDebug) rtc_use_dummy_audio_file_devices=true rtc_use_h264=true rtc_enable_symbol_export=true target_os=\&quot;win\&quot; target_cpu=\&quot;x86\&quot;&quot; --root=$(EscapedMSBuildThisFileDirectory)../../.. $(EscapedIntermediateOutputPath)win_x86"
             Condition="!Exists('$(IntermediateOutputPath)win_x86/build.ninja')" />
