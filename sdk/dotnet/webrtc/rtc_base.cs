@@ -162,7 +162,10 @@ namespace Pixiv.Rtc
             _ptr = IntPtr.Zero;
             GC.SuppressFinalize(this);
         }
+
     }
+
+    
 
     public sealed class DisposableThread : DisposablePtr, IDisposableThread
     {

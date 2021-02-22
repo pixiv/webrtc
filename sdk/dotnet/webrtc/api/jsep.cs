@@ -8,6 +8,7 @@
 using Pixiv.Rtc;
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Pixiv.Webrtc
 {

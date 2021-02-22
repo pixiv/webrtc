@@ -930,8 +930,8 @@ namespace Pixiv.Webrtc
             public const int MaxOfferToReceiveMedia = 1;
             public const int OfferToReceiveMediaTrue = 1;
 
-            public int OfferToReceiveVideo { get; set; } = Undefined;
-            public int OfferToReceiveAudio { get; set; } = Undefined;
+            public int OfferToReceiveVideo { get; set; } = 0;
+            public int OfferToReceiveAudio { get; set; } = 0;
 
             [field: MarshalAs(UnmanagedType.I1)]
             public bool VoiceActivityDetection { get; set; } = true;

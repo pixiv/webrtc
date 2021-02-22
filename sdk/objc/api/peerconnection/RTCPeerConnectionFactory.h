@@ -40,7 +40,6 @@ RTC_OBJC_EXPORT
 
 - (instancetype)initWithEncoderFactory:(nullable id<RTCVideoEncoderFactory>)encoderFactory
                         decoderFactory:(nullable id<RTCVideoDecoderFactory>)decoderFactory
-                     audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule;
 
 /** Initialize an RTCAudioSource with constraints. */
 - (RTCAudioSource *)audioSourceWithConstraints:(nullable RTCMediaConstraints *)constraints;

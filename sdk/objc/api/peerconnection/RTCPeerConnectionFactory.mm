@@ -120,6 +120,7 @@
                 mediaTransportFactory:nullptr];
 }
 
+#if defined(WEBRTC_IOS)
 - (instancetype)initWithEncoderFactory:(nullable id<RTCVideoEncoderFactory>)encoderFactory
                         decoderFactory:(nullable id<RTCVideoDecoderFactory>)decoderFactory
                      audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule {
@@ -143,6 +144,7 @@
                            mediaTransportFactory:nullptr];
 #endif
 }
+#endif
 
 - (instancetype)initNative {
   if (self = [super init]) {

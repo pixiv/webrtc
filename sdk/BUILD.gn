@@ -796,9 +796,7 @@ if (is_ios || is_mac) {
         "..:no_global_constructors",
       ]
       sources = [
-        "objc/api/peerconnection/RTCAudioDeviceModule+Private.h",
         "objc/api/peerconnection/RTCAudioDeviceModule.h",
-        "objc/api/peerconnection/RTCAudioDeviceModule.mm",
         "objc/api/peerconnection/RTCAudioSource+Private.h",
         "objc/api/peerconnection/RTCAudioSource.h",
         "objc/api/peerconnection/RTCAudioSource.mm",
@@ -954,6 +952,10 @@ if (is_ios || is_mac) {
       ]
 
       if (is_ios) {
+		sources += [
+          "objc/api/peerconnection/RTCAudioDeviceModule+Private.h",
+          "objc/api/peerconnection/RTCAudioDeviceModule.mm",
+        ]
         deps += [ ":native_api_audio_device_module" ]
       }
     }
