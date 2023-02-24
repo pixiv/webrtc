@@ -1,0 +1,1 @@
+'solutions=[{name:src,url:https://www.github.com/ispysoftware/webrtc@origin/nudi}]'

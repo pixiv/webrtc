@@ -81,15 +81,24 @@ namespace Pixiv.Rtc
         [MonoPInvokeCallback(typeof(DestructionHandler))]
         private static void OnDestruction(IntPtr context)
         {
-            var handle = (GCHandle)context;
-            var source = (AdaptedVideoTrackSource)handle.Target;
-
-            if (source._handle.IsAllocated)
+            try
             {
-                source._handle.Free();
-            }
+                var handle = (GCHandle)context;
+                var source = (AdaptedVideoTrackSource)handle.Target;
+                if (source != null)
+                {
+                    if (source._handle.IsAllocated)
+                    {
+                        source._handle.Free();
+                    }
+                }
 
-            handle.Free();
+                handle.Free();
+            }
+            catch
+            {
+
+            }
         }
 
         [MonoPInvokeCallback(typeof(SourceStateGetter))]

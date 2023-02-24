@@ -9,7 +9,7 @@
 <Project>
     <PropertyGroup>
         <BaseOutputPath>bin/</BaseOutputPath>
-        <Configuration>Release</Configuration>
+        <Configuration>Release</Configuration><!--Debug-->
         <OutputPath>$(BaseOutputPath)$(Configuration)/</OutputPath>
     </PropertyGroup>
     <Import Project="$(MSBuildToolsPath)/Microsoft.Common.targets" />

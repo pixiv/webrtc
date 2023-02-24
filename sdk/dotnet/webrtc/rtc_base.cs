@@ -137,11 +137,11 @@ namespace Pixiv.Rtc
 
         ~DisposablePtr()
         {
-            if (_ptr == IntPtr.Zero)
-            {
-                return;
-            }
-            FreePtr();
+            //if (_ptr == IntPtr.Zero)
+            //{
+            //    return;
+            //}
+            //FreePtr();
         }
 
         public void Dispose()
@@ -162,10 +162,7 @@ namespace Pixiv.Rtc
             _ptr = IntPtr.Zero;
             GC.SuppressFinalize(this);
         }
-
-    }
-
-    
+    }    
 
     public sealed class DisposableThread : DisposablePtr, IDisposableThread
     {
@@ -262,6 +259,11 @@ namespace Pixiv.Rtc
 
         public static void Start(this IThread thread)
         {
+            if (thread == null)
+            {
+                throw new ArgumentNullException(nameof(thread));
+            }
+
             rtcThreadStart(thread.Ptr);
             GC.KeepAlive(thread);
         }
