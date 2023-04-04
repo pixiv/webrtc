@@ -118,7 +118,7 @@
                        nativeAudioDecoderFactory:webrtc::CreateBuiltinAudioDecoderFactory()
                        nativeVideoEncoderFactory:std::move(native_encoder_factory)
                        nativeVideoDecoderFactory:std::move(native_decoder_factory)
-                               audioDeviceModule:audioDeviceModule.nativeModule
+                               audioDeviceModule:audioDeviceModule.nativeModule.get()
                            audioProcessingModule:nullptr];
 #endif
 }

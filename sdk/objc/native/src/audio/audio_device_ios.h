@@ -220,8 +220,6 @@ class AudioDeviceIOS : public AudioDeviceGeneric,
   // created on.
   SequenceChecker thread_checker_;
 
-  // Native I/O audio thread checker.
-  SequenceChecker io_thread_checker_;
   // Native audio I/O mutex.
   Mutex io_mutex_;
 

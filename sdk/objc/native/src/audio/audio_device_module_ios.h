@@ -34,6 +34,7 @@ class AudioDeviceModuleIOS : public AudioDeviceModule {
  public:
   int32_t AttachAudioBuffer();
 
+  AudioDeviceModuleIOS();
   explicit AudioDeviceModuleIOS(bool bypass_voice_processing);
   ~AudioDeviceModuleIOS() override;
 

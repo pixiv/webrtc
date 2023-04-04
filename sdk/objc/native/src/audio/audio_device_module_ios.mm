@@ -39,6 +39,13 @@
 namespace webrtc {
 namespace ios_adm {
 
+AudioDeviceModuleIOS::AudioDeviceModuleIOS()
+    : bypass_voice_processing_(false),
+      task_queue_factory_(CreateDefaultTaskQueueFactory()) {
+  RTC_LOG(LS_INFO) << "current platform is IOS";
+  RTC_LOG(LS_INFO) << "iPhone Audio APIs will be utilized.";
+}
+
 AudioDeviceModuleIOS::AudioDeviceModuleIOS(bool bypass_voice_processing)
     : bypass_voice_processing_(bypass_voice_processing),
       task_queue_factory_(CreateDefaultTaskQueueFactory()) {
