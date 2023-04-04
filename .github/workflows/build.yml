@@ -34,13 +34,13 @@ jobs:
           path: artifacts
 
   unity_ios:
-    runs-on: macos-11.0
+    runs-on: macos-12
 
     steps:
       - uses: actions/checkout@v2
         with:
           path: src
-      - run: sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
+      - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
       - run: src/.github/bin/setup.ps1
       - run: gclient config --name=src --unmanaged "https://github.com/$GITHUB_REPOSITORY.git"
       - run: gclient sync --deps=ios,mac --no-history --shallow
@@ -72,13 +72,13 @@ jobs:
           path: artifacts
 
   unity_mac:
-    runs-on: macos-11.0
+    runs-on: macos-12
 
     steps:
       - uses: actions/checkout@v2
         with:
           path: src
-      - run: sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
+      - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
       - run: src/.github/bin/setup.ps1
       - run: gclient config --name=src --unmanaged "https://github.com/$GITHUB_REPOSITORY.git"
       - run: gclient sync --no-history --shallow
@@ -142,13 +142,13 @@ jobs:
           path: com.pixiv.webrtc.tgz
 
   ios:
-    runs-on: macos-11.0
+    runs-on: macos-12
 
     steps:
       - uses: actions/checkout@v2
         with:
           path: src
-      - run: sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
+      - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
       - run: src/.github/bin/setup.ps1
       - run: gclient config --name=src --unmanaged "https://github.com/$GITHUB_REPOSITORY.git"
       - run: gclient sync --deps=ios,mac --no-history --shallow
