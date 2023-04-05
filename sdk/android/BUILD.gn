@@ -1558,11 +1558,8 @@ if (is_android) {
       ":instrumentationtests_jni",
       ":libjingle_peerconnection_jni",
       ":libjingle_peerconnection_metrics_default_jni",
-<<<<<<< HEAD
       ":native_api_jni",
-=======
       "../c",
->>>>>>> 28d0ef5c3e (Introduce .NET bindings)
       "../../pc:libjingle_peerconnection",
       "../../rtc_base",
     ]
