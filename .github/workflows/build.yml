@@ -156,7 +156,7 @@ jobs:
       # The build option is expected to compatible with sora-ios-sdk.
       # rtc_enable_protobuf=false suppresses the event log, which consumes lots of memory,
       # for memory-constrained environment like broadcast extension.
-      - run: src/tools_webrtc/ios/build_ios_libs.py --arch arm64 x64 -e --extra-gn-args rtc_enable_protobuf=false
+      - run: src/tools_webrtc/ios/build_ios_libs.py --extra-gn-args rtc_enable_protobuf=false
 
       - run: zip -q -r --symlinks WebRTC.framework.zip WebRTC.framework
         working-directory: src/out_ios_libs
