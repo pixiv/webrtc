@@ -109,11 +109,11 @@
             <Output TaskParameter="AbsolutePaths" PropertyName="AbsoluteOutputPath" />
         </ConvertToAbsolutePath>
         <Exec
-            Command="./tools_webrtc/ios/build_ios_libs.py --arch arm arm64 x64 --build_config debug -o $(AbsoluteIntermediateOutputPath.Replace('\', '\\').Replace('&quot;', '\&quot;'))build/ios_libs -e --extra-gn-args rtc_enable_symbol_export=true"
+            Command="./tools_webrtc/ios/build_ios_libs.py --build_config debug -o $(AbsoluteIntermediateOutputPath.Replace('\', '\\').Replace('&quot;', '\&quot;'))build/ios_libs --extra-gn-args rtc_enable_symbol_export=true"
             Condition="$(IsDebug)"
             WorkingDirectory="$(SourceRootPath)" />
         <Exec
-            Command="./tools_webrtc/ios/build_ios_libs.py --arch arm arm64 x64 -o $(AbsoluteIntermediateOutputPath.Replace('\', '\\').Replace('&quot;', '\&quot;'))build/ios_libs -e --extra-gn-args rtc_enable_symbol_export=true"
+            Command="./tools_webrtc/ios/build_ios_libs.py x64 -o $(AbsoluteIntermediateOutputPath.Replace('\', '\\').Replace('&quot;', '\&quot;'))build/ios_libs --extra-gn-args rtc_enable_symbol_export=true"
             Condition="!$(IsDebug)"
             WorkingDirectory="$(SourceRootPath)" />
         <MakeDir Directories="$(IntermediateOutputPath)desc/ios_libs/arm_libs;$(IntermediateOutputPath)desc/ios_libs/arm64_libs;$(IntermediateOutputPath)desc/ios_libs/x64_libs" />

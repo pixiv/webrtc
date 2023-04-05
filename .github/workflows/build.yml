@@ -158,10 +158,10 @@ jobs:
       # for memory-constrained environment like broadcast extension.
       - run: src/tools_webrtc/ios/build_ios_libs.py --extra-gn-args rtc_enable_protobuf=false
 
-      - run: zip -q -r --symlinks WebRTC.framework.zip WebRTC.framework
+      - run: zip -q -r --symlinks WebRTC.xcframework.zip WebRTC.xcframework
         working-directory: src/out_ios_libs
 
       - uses: actions/upload-artifact@v2
         with:
           name: ios
-          path: src/out_ios_libs/WebRTC.framework.zip
+          path: src/out_ios_libs/WebRTC.xcframework.zip
