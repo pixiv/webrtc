@@ -1,7 +1,0 @@
-{
-  "description": "WebRTC is a free, open project that provides browsers and mobile applications with Real-Time Communications (RTC) capabilities via simple APIs",
-  "displayName": "WebRTC",
-  "name": "com.pixiv.webrtc",
-  "unity": "2019.2",
-  "version": "77.0.0"
-}

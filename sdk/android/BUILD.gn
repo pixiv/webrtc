@@ -128,6 +128,7 @@ if (is_android) {
     sources = [ "src/jni/jni_onload.cc" ]
 
     suppressed_configs += [ "//build/config/android:hide_all_but_jni_onload" ]
+    configs += [ "//build/config/android:hide_all_but_jni" ]
     ldflags = [
       "-lEGL",
       "-Wl,--build-id",
@@ -138,7 +139,6 @@ if (is_android) {
       ":libjingle_peerconnection_metrics_default_jni",
       ":native_api_jni",
       ":video_egl_jni",
-      "../c",
       "../../pc:libjingle_peerconnection",
       "../../rtc_base",
     ]
@@ -1553,13 +1553,13 @@ if (is_android) {
     sources = [ "src/jni/jni_onload.cc" ]
 
     suppressed_configs += [ "//build/config/android:hide_all_but_jni_onload" ]
+    configs += [ "//build/config/android:hide_all_but_jni" ]
 
     deps = [
       ":instrumentationtests_jni",
       ":libjingle_peerconnection_jni",
       ":libjingle_peerconnection_metrics_default_jni",
       ":native_api_jni",
-      "../c",
       "../../pc:libjingle_peerconnection",
       "../../rtc_base",
     ]
