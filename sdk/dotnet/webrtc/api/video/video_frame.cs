@@ -219,14 +219,14 @@ namespace Pixiv.Webrtc
             GC.KeepAlive(value);
         }
 
-        public static void SetTimestampMs(
+        public static void SetTimestampUs(
             this VideoFrame.IBuilder builder, long value)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
-            webrtcVideoFrameBuilder_set_timestamp_ms(builder.Ptr, value);
+            webrtcVideoFrameBuilder_set_timestamp_us(builder.Ptr, value);
             GC.KeepAlive(builder);
         }
 
